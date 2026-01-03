@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kullanım Koşulları - YKS Deneme Analiz</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f8f9fc;
+      font-family: 'Nunito', sans-serif;
+      color: #343a40;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.15rem 0.35rem rgba(0,0,0,0.1);
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    h1, h2 {
+      color: #4e73df;
+    }
+    .back-link {
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Flash mesajları -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="alert-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <h1 class="mb-4">Kullanım Koşulları</h1>
+    <p><strong>Yürürlük Tarihi:</strong> 6 Temmuz 2025</p>
+
+    <p>
+      Bu koşullar, <strong>analiz.software</strong> tarafından sunulan hizmetlerin kullanımına ilişkin hükümleri düzenler. Siteye giriş yapan ve hizmetleri kullanan her kullanıcı bu koşulları kabul etmiş sayılır.
+    </p>
+
+    <h2 class="mt-4">1. Hizmetin Tanımı</h2>
+    <p>
+      analiz.software, kullanıcıların deneme sınav sonuçlarını analiz edebilmesini, geçmiş sınav performanslarını takip edebilmesini ve yapay zeka destekli öneriler alabilmesini sağlayan bir eğitim platformudur.
+    </p>
+
+    <h2 class="mt-4">2. Kullanıcı Yükümlülükleri</h2>
+    <ul>
+      <li>Gerçek ve doğru bilgilerle hesap oluşturmak</li>
+      <li>Başkalarının gizliliğini ihlal etmemek</li>
+      <li>Hizmeti yalnızca kişisel ve yasal amaçlarla kullanmak</li>
+      <li>Sistem üzerinde spam, sahtekarlık, saldırı vb. eylemlerde bulunmamak</li>
+    </ul>
+
+    <h2 class="mt-4">3. Fikri Mülkiyet</h2>
+    <p>
+      analiz.software platformuna ait yazılım, tasarım, veri yapıları ve içerikler telif hakkı ile korunmaktadır. İzinsiz kopyalanması veya kullanılması yasaktır.
+    </p>
+
+    <h2 class="mt-4">4. Sorumluluğun Sınırlandırılması</h2>
+    <p>
+      Platformda sunulan analiz, tavsiye ve yorumlar bilgilendirme amaçlıdır. analiz.software, bu içeriklerin doğruluğu veya başarı garantisi vermez. Kullanıcının kendi kararları ve sonuçlarından sorumlu değildir.
+    </p>
+
+    <h2 class="mt-4">5. Hesap Kapatma ve Askıya Alma</h2>
+    <p>
+      Kullanıcı, hesabını dilediği zaman kapatma hakkına sahiptir. analiz.software, kullanım koşullarını ihlal eden hesapları askıya alma veya kapatma hakkını saklı tutar.
+    </p>
+
+    <h2 class="mt-4">6. Değişiklik Hakkı</h2>
+    <p>
+      Bu koşullarda zaman zaman güncellemeler yapılabilir. Güncellenen koşullar bu sayfada yayınlandığı andan itibaren geçerli olur.
+    </p>
+
+    <p>Her türlü iletişim için: <strong>analizsoftware@gmail.com</strong></p>
+
+    <div class="back-link text-center">
+      <a href="/" class="btn btn-primary">Ana Sayfaya Dön</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

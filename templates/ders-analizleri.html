@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ders Analizleri - YKS Analiz Paneli</title>
+
+    <!-- CSS ve JS Kütüphaneleri -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+        }
+
+        .card {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background: #fff;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+        }
+
+        .filter-tabs {
+            background: white;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 0.35rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 0 0.25rem;
+        }
+
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+        }
+
+        .analiz-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 0.35rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .analiz-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .deneme-card {
+            background: white;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .deneme-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .deneme-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .deneme-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .deneme-net {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .ders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .ders-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.35rem;
+            text-align: center;
+            border: 1px solid #e3e6f0;
+        }
+
+        .ders-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .ders-net {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--info-color);
+        }
+
+        .ders-details {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .no-data i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .recommendation-card {
+            background: linear-gradient(135deg, #36b9cc 0%, #3182ce 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Koç Sohbet Kutusu Stil */
+        #coachChatBtn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1051;
+            background: #4e73df;
+            color: #fff;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            font-size: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #coachChatBox {
+            position: fixed;
+            bottom: 100px;
+            right: 32px;
+            width: 350px;
+            max-width: 95vw;
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+            z-index: 1052;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #coachChatBox.active { display: flex; }
+        #coachChatHeader {
+            background: #4e73df;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #coachChatBody {
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            background: #f8f9fc;
+            font-size: 0.97rem;
+        }
+        #coachChatInputArea {
+            display: flex;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+        #coachChatInput {
+            flex: 1;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
+        }
+        #coachChatSendBtn {
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            padding: 0 1.2rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 0 0 1rem 0;
+        }
+        .coach-msg-user {
+            background: #e3e6f0;
+            color: #222;
+            border-radius: 1rem 1rem 0 1rem;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-end;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        .coach-msg-coach {
+            background: #4e73df;
+            color: #fff;
+            border-radius: 1rem 1rem 1rem 0;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+            max-width: 80%;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar border-end" id="sidebar">
+            <div class="sidebar-heading p-3">
+                <h4 class="text-center">YKS Analiz</h4>
+            </div>
+            <div class="list-group list-group-flush">
+            <a href="/panel" class="list-group-item list-group-item-action {% if request.path == '/' %}active{% endif %}">
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+            </a>
+            <a href="/denemeler" class="list-group-item list-group-item-action {% if request.path.startswith('/denemeler') %}active{% endif %}">
+                <i class="bi bi-journal-text me-2"></i>Denemeler
+            </a>
+            <a href="/istatistikler" class="list-group-item list-group-item-action {% if request.path.startswith('/istatistikler') %}active{% endif %}">
+                <i class="bi bi-graph-up me-2"></i>İstatistikler
+            </a>
+            <a href="/ders-analizleri?tur=TYT" class="list-group-item list-group-item-action {% if request.path.startswith('/ders-analizleri') and request.args.get('tur') == 'TYT' %}active{% endif %}">
+                <i class="bi bi-book me-2"></i>TYT Ders Analizleri
+            </a>
+            <a href="/ders-analizleri?tur=AYT" class="list-group-item list-group-item-action {% if request.path.startswith('/ders-analizleri') and request.args.get('tur') == 'AYT' %}active{% endif %}">
+                <i class="bi bi-book me-2"></i>AYT Ders Analizleri
+            </a>
+        </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="container-fluid py-4">
+            <!-- Başlık -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="bi bi-book me-2"></i>Ders Analizleri
+                </h1>
+                <div class="d-flex">
+                    <button class="btn btn-primary me-2" onclick="generateStudyPlan()">
+                        <i class="bi bi-calendar-plus me-2"></i>Çalışma Planı Oluştur
+                    </button>
+                    <button class="btn btn-success" onclick="exportAnalysis()">
+                        <i class="bi bi-download me-2"></i>Analiz Raporu
+                    </button>
+                </div>
+            </div>
+            
+
+            {% if analizler and analizler|length > 0 %}
+            <!-- Genel İstatistikler -->
+            <div class="analiz-header">
+                <h2><i class="bi bi-graph-up me-2"></i>Genel Performans</h2>
+                <p class="mb-0">{{ analizler|length }} deneme üzerinden detaylı analiz</p>
+                <div class="analiz-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ analizler|length }}</div>
+                        <div class="stat-label">Toplam Deneme</div>
+                    </div>
+                    <div class="stat-card">
+                        {% set toplam_net_list = [] %}
+                        {% for analiz in analizler %}
+                            {% set _ = toplam_net_list.append(analiz.toplam_net) %}
+                        {% endfor %}
+                        <div class="stat-number">
+                            {% if toplam_net_list|length > 0 %}
+                                {{ "%.1f"|format(toplam_net_list|sum / toplam_net_list|length) }}
+                            {% else %}
+                                0.0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Ortalama Net</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">
+                            {% if toplam_net_list|length > 0 %}
+                                {{ "%.1f"|format(toplam_net_list|max) }}
+                            {% else %}
+                                0.0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">En Yüksek Net</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">
+                            {% if toplam_net_list|length > 0 %}
+                                {{ "%.1f"|format(toplam_net_list|last) }}
+                            {% else %}
+                                0.0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Son Deneme</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Analizi -->
+            <div class="row">
+                <div class="col-lg-12 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Net Performans Trendi</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="performansTrendiChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ders Bazlı Analiz -->
+            <div class="row">
+                <div class="col-lg-12 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Ders Bazlı Ortalama Performans</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="dersBazliChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deneme Detayları -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Deneme Detayları</h6>
+                </div>
+                <div class="card-body" id="denemeDetaylari">
+                    {% for analiz in analizler %}
+                    <div class="deneme-card" data-type="all">
+                        <div class="deneme-header">
+                            <div>
+                                <div class="deneme-title">{{ analiz.deneme_adi }}</div>
+                                <div class="deneme-date">{{ analiz.tarih }}</div>
+                            </div>
+                            <div class="deneme-net">{{ "%.1f"|format(analiz.toplam_net) }} Net</div>
+                        </div>
+
+                        <div class="ders-grid">
+                            {% if analiz.detaylar and analiz.detaylar|length > 0 %}
+                                {% for detay in analiz.detaylar %}
+                                    {% if detay.ders != 'Fen Bilimleri' and detay.ders != 'Sosyal Bilimler' %}
+                                    <div class="ders-item">
+                                        <div class="ders-name">{{ detay.ders }}</div>
+                                        <div class="ders-net">{{ "%.1f"|format(detay.net) }}</div>
+                                        <div class="ders-details">
+                                            D: {{ detay.dogru }} | Y: {{ detay.yanlis }} | B: {{ detay.bos }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12">
+                                    <p class="text-muted text-center">Bu deneme için detaylı ders bilgisi bulunmamaktadır.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Öneriler -->
+            <div class="row">
+                <div class="col-lg-12 mb-4">
+                    <div class="recommendation-card">
+                        <h5><i class="bi bi-lightbulb me-2"></i>Akıllı Öneriler</h5>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h6>Güçlü Yönleriniz:</h6>
+                                <ul class="list-unstyled">
+                                    {% set en_iyi_dersler = [] %}
+                                    {% for analiz in analizler %}
+                                        {% if analiz.detaylar %}
+                                            {% for detay in analiz.detaylar %}
+                                                {% if detay.ders != 'Fen Bilimleri' and detay.ders != 'Sosyal Bilimler' and detay.net >= 15 %}
+                                                    {% set _ = en_iyi_dersler.append(detay.ders) %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% set unique_dersler = en_iyi_dersler|unique|list %}
+                                    {% for ders in unique_dersler[:3] %}
+                                    <li><i class="bi bi-check-circle me-2"></i>{{ ders }} performansınız iyi</li>
+                                    {% endfor %}
+                                    {% if unique_dersler|length == 0 %}
+                                    <li><i class="bi bi-info-circle me-2"></i>Daha fazla deneme yaparak güçlü yönlerinizi keşfedin</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Gelişim Alanlarınız:</h6>
+                                <ul class="list-unstyled">
+                                    {% set zayif_dersler = [] %}
+                                    {% for analiz in analizler %}
+                                        {% if analiz.detaylar %}
+                                            {% for detay in analiz.detaylar %}
+                                                {% if detay.ders != 'Fen Bilimleri' and detay.ders != 'Sosyal Bilimler' and detay.net < 10 %}
+                                                    {% set _ = zayif_dersler.append(detay.ders) %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% set unique_zayif = zayif_dersler|unique|list %}
+                                    {% for ders in unique_zayif[:3] %}
+                                    <li><i class="bi bi-exclamation-triangle me-2"></i>{{ ders }} konusunda çalışma gerekiyor</li>
+                                    {% endfor %}
+                                    {% if unique_zayif|length == 0 %}
+                                    <li><i class="bi bi-trophy me-2"></i>Tüm derslerde iyi performans gösteriyorsunuz!</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Veri Yok Durumu -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="no-data">
+                        <i class="bi bi-book"></i>
+                        <h4>Henüz deneme verisi bulunmamaktadır</h4>
+                        <p>Ders analizlerini görüntülemek için önce deneme eklemeniz gerekiyor.</p>
+                        <a href="/yeni-deneme" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>İlk Denemeyi Ekle
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Koç Sohbet Kutusu -->
+    <button id="coachChatBtn" title="Koç ile Sohbet">
+        <i class="bi bi-chat-dots"></i>
+    </button>
+    <div id="coachChatBox">
+        <div id="coachChatHeader">
+            <span><i class="bi bi-person-heart"></i> Koç</span>
+            <div>
+                <button class="btn btn-sm btn-light me-2" onclick="clearCoachChat()" title="Sohbeti Temizle" style="border-radius:50%"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-sm btn-light" onclick="toggleCoachChat()" style="border-radius:50%"><i class="bi bi-x"></i></button>
+            </div>
+        </div>
+        <div id="coachChatBody">
+            <div class="text-center text-muted my-3" id="coachChatWelcome">
+                Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.
+            </div>
+        </div>
+        <div id="coachChatInputArea">
+            <input id="coachChatInput" type="text" placeholder="Mesajınızı yazın..." autocomplete="off" />
+            <button id="coachChatSendBtn"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // Grafik değişkenleri
+        let performansTrendiChart, dersBazliChart;
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            const analizlerData = {{ analizler|tojson if analizler else '[]' }};
+
+            if (Array.isArray(analizlerData) && analizlerData.length > 0) {
+                initializeCharts();
+            }
+        });
+
+        // Grafikleri başlat
+        function initializeCharts() {
+            // Performans Trendi (ApexCharts)
+            const performansData = [
+                {% for analiz in analizler %}
+                    {{ analiz.toplam_net }}
+                    {% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const performansLabels = [
+                {% for analiz in analizler %}
+                    '{{ (analiz.deneme_adi[:10] + "...") if analiz.deneme_adi|length > 10 else analiz.deneme_adi }}'
+                    {% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const performansOptions = {
+                series: [{
+                    name: 'Net',
+                    data: performansData
+                }],
+                chart: {
+                    height: 350,
+                    type: 'line',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#4e73df'],
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                xaxis: {
+                    categories: performansLabels,
+                    title: {
+                        text: 'Denemeler'
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'Net'
+                    },
+                    min: 0
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (y) {
+                            return y + " net"
+                        }
+                    }
+                }
+            };
+
+            performansTrendiChart = new ApexCharts(document.querySelector("#performansTrendiChart"), performansOptions);
+            performansTrendiChart.render();
+
+            // Ders bazlı ortalama hesaplama
+            const dersOrtalamalari = {};
+            {% for analiz in analizler %}
+                {% if analiz.detaylar %}
+                    {% for detay in analiz.detaylar %}
+                        if (!dersOrtalamalari['{{ detay.ders }}']) {
+                            dersOrtalamalari['{{ detay.ders }}'] = [];
+                        }
+                        dersOrtalamalari['{{ detay.ders }}'].push({{ detay.net }});
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+
+            const dersler = Object.keys(dersOrtalamalari);
+            const ortalamalar = dersler.map(ders => {
+                const netler = dersOrtalamalari[ders];
+                return netler.reduce((a, b) => a + b, 0) / netler.length;
+            });
+
+            // Ders Bazlı Ortalama Grafik
+            if (dersler.length > 0) {
+                const dersBazliOptions = {
+                    series: [{
+                        name: 'Ortalama Net',
+                        data: ortalamalar
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 350,
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    xaxis: {
+                        categories: dersler,
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Ortalama Net'
+                        }
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    colors: ['#1cc88a'],
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val.toFixed(1) + " net"
+                            }
+                        }
+                    }
+                };
+
+                dersBazliChart = new ApexCharts(document.querySelector("#dersBazliChart"), dersBazliOptions);
+                dersBazliChart.render();
+            } else {
+                document.querySelector("#dersBazliChart").innerHTML = '<div class="text-center text-muted p-4">Ders bazlı veri bulunamadı</div>';
+            }
+        }
+
+        // Tür bazlı filtreleme
+        function filterByType(type) {
+            // Aktif tab'ı güncelle
+            document.querySelectorAll('.nav-pills .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Deneme kartlarını filtrele
+            const denemeCards = document.querySelectorAll('.deneme-card');
+            denemeCards.forEach(card => {
+                const denemeTitle = card.querySelector('.deneme-title').textContent;
+
+                if (type === 'all') {
+                    card.style.display = 'block';
+                } else if (type === 'TYT') {
+                    // TYT denemeleri için basit kontrol (deneme adında TYT geçiyorsa)
+                    if (denemeTitle.toLowerCase().includes('tyt')) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                } else if (type === 'AYT') {
+                    // AYT denemeleri için basit kontrol
+                    if (denemeTitle.toLowerCase().includes('ayt')) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+
+            // Görünür kart sayısını kontrol et
+            const visibleCards = Array.from(denemeCards).filter(card => card.style.display !== 'none');
+            if (visibleCards.length === 0) {
+                showNoResultsMessage(type);
+            } else {
+                hideNoResultsMessage();
+            }
+        }
+
+        function showNoResultsMessage(type) {
+            let existingMessage = document.querySelector('#noResultsMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const message = document.createElement('div');
+            message.id = 'noResultsMessage';
+            message.className = 'text-center text-muted p-4';
+            message.innerHTML = `
+                <i class="bi bi-search" style="font-size: 2rem; opacity: 0.5;"></i>
+                <p class="mt-2">Seçilen filtreye uygun ${type} denemesi bulunamadı</p>
+            `;
+
+            document.getElementById('denemeDetaylari').appendChild(message);
+        }
+
+        function hideNoResultsMessage() {
+            const existingMessage = document.querySelector('#noResultsMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+        }
+
+        // Çalışma planı oluştur
+        function generateStudyPlan() {
+            alert('Kişiselleştirilmiş çalışma planınız oluşturuluyor...');
+            // Burada AI tabanlı çalışma planı oluşturma işlemi yapılacak
+        }
+
+        // Analiz raporu indir
+        function exportAnalysis() {
+            alert('Detaylı analiz raporu indiriliyor...');
+            // Burada PDF rapor oluşturma işlemi yapılacak
+        }
+
+        // Koç Sohbet Kutusu Script
+        function toggleCoachChat(forceState) {
+            const box = document.getElementById('coachChatBox');
+            let willBeActive;
+            if (typeof forceState === 'boolean') {
+                willBeActive = forceState;
+                box.classList.toggle('active', willBeActive);
+            } else {
+                box.classList.toggle('active');
+                willBeActive = box.classList.contains('active');
+            }
+            // Durumu localStorage'a kaydet
+            localStorage.setItem('coachChatOpen', willBeActive ? '1' : '0');
+            if (willBeActive) {
+                setTimeout(() => {
+                    document.getElementById('coachChatInput').focus();
+                }, 200);
+            }
+        }
+        document.getElementById('coachChatBtn').onclick = function() { toggleCoachChat(); };
+
+        // Sayfa yüklendiğinde sohbet kutusunun açık/kapalı durumunu kontrol et
+        document.addEventListener('DOMContentLoaded', function() {
+            // ...existing code...
+            if (localStorage.getItem('coachChatOpen') === '1') {
+                toggleCoachChat(true);
+            }
+        });
+
+        // Enter ile gönderme
+        document.getElementById('coachChatInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                sendCoachMessageStream();
+            }
+        });
+        document.getElementById('coachChatSendBtn').onclick = sendCoachMessageStream;
+
+        let coachChatLoading = false;
+        const MAX_MESSAGE_LENGTH = 300;
+
+        function sendCoachMessageStream() {
+            if (coachChatLoading) return;
+            const input = document.getElementById('coachChatInput');
+            const msg = input.value.trim();
+
+            if (msg.length > MAX_MESSAGE_LENGTH) {
+                appendCoachMsg('coach', `Mesaj çok uzun (en fazla ${MAX_MESSAGE_LENGTH} karakter yazabilirsin).`);
+                return;
+            }
+            if (!msg) return;
+            appendCoachMsg('user', msg);
+            input.value = '';
+            coachChatLoading = true;
+            // Spinner ekle
+            const body = document.getElementById('coachChatBody');
+            const spinnerDiv = document.createElement('div');
+            spinnerDiv.className = 'coach-msg-coach';
+            spinnerDiv.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            body.appendChild(spinnerDiv);
+            body.scrollTop = body.scrollHeight;
+
+            // SSE ile streaming başlat
+            const evtSource = new EventSourcePolyfill('/api/coach-chat-stream', {
+                headers: { 'Content-Type': 'application/json' },
+                payload: JSON.stringify({ message: msg }),
+                withCredentials: true
+            });
+
+            let coachMsg = '';
+            evtSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.delta) {
+                    coachMsg += data.delta;
+                    spinnerDiv.innerHTML = coachMsg;
+                    body.scrollTop = body.scrollHeight;
+                }
+                if (data.done) {
+                    coachChatLoading = false;
+                    evtSource.close();
+                }
+                if (data.error) {
+                    spinnerDiv.innerHTML = data.error;
+                    coachChatLoading = false;
+                    evtSource.close();
+                }
+            };
+            evtSource.onerror = function() {
+                spinnerDiv.innerHTML = 'Koç şu an yanıt veremiyor.';
+                coachChatLoading = false;
+                evtSource.close();
+            };
+            // Welcome mesajını gizle
+            const welcome = document.getElementById('coachChatWelcome');
+            if (welcome) welcome.style.display = 'none';
+        }
+
+        // Polyfill: EventSource POST desteği için
+        if (typeof EventSourcePolyfill === 'undefined') {
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/event-source-polyfill@1.0.31/src/eventsource.min.js';
+            document.head.appendChild(script);
+        }
+
+        function appendCoachMsg(who, text) {
+            const body = document.getElementById('coachChatBody');
+            const div = document.createElement('div');
+            div.className = who === 'user' ? 'coach-msg-user' : 'coach-msg-coach';
+            div.innerHTML = text;
+            body.appendChild(div);
+            body.scrollTop = body.scrollHeight;
+            // Welcome mesajını gizle
+            const welcome = document.getElementById('coachChatWelcome');
+            if (welcome) welcome.style.display = 'none';
+        }
+
+        // Sohbet geçmişini yükle (sayfa yenilendiğinde)
+        window.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/coach-chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: ''})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.history && data.history.length > 0) {
+                    document.getElementById('coachChatBody').innerHTML = '';
+                    data.history.forEach(turn => {
+                        appendCoachMsg('user', turn.user);
+                        appendCoachMsg('coach', turn.coach);
+                    });
+                }
+            });
+        });
+
+        function clearCoachChat() {
+            if (!confirm("Tüm sohbet geçmişini silmek istediğine emin misin?")) return;
+            fetch('/api/coach-chat-clear', {method: 'POST'})
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('coachChatBody').innerHTML = '<div class="text-center text-muted my-3" id="coachChatWelcome">Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.</div>';
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
+

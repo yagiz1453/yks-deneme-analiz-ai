@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>E-posta Doğrulama</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fc;
+            padding: 40px;
+            color: #343a40;
+        }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 32px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        h2 {
+            color: #4e73df;
+        }
+        a.button {
+            display: inline-block;
+            background-color: #4e73df;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-top: 16px;
+            font-weight: bold;
+        }
+        p {
+            line-height: 1.6;
+        }
+        .link-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Merhaba {{ user_name }},</h2>
+        <p>Hesabınızı doğrulamak için aşağıdaki butona tıklayın:</p>
+        <p>
+            <a href="{{ verify_link }}" class="button">Hesabı Doğrula</a>
+        </p>
+        <p class="link-text">Veya bağlantı: <br><a href="{{ verify_link }}">{{ verify_link }}</a></p>
+        <p>Eğer bu işlemi siz yapmadıysanız bu e-postayı görmezden gelebilirsiniz.</p>
+        <p>Teşekkür ederiz!</p>
+    </div>
+</body>
+</html>

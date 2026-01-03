@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ deneme.deneme_adi }} Düzenle</title>
+    
+    <!-- CSS Kütüphaneleri -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+        }
+
+        .card {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            border: none;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom: none;
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.35rem;
+            border: 1px solid #d1d3e2;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        .btn {
+            border-radius: 0.35rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+            border: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+            border: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-color), #6c757d);
+            border: none;
+        }
+
+        .ders-section {
+            background: #f8f9fa;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .ders-title {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .soru-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .soru-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .soru-no {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .soru-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 0.35rem;
+            border: 2px solid #d1d3e2;
+            transition: all 0.3s;
+        }
+
+        .soru-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            transform: scale(1.05);
+        }
+
+        .soru-input:valid {
+            border-color: var(--success-color);
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #6c757d);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.35rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            color: white;
+        }
+
+        .section-divider {
+            border: none;
+            height: 2px;
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+            margin: 2rem 0;
+            border-radius: 1px;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.35rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-header h1 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .form-header .form-group {
+            display: inline-block;
+            margin: 0 1rem;
+        }
+
+        .form-header .form-control, .form-header .form-select {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: #333;
+        }
+
+        .form-header label {
+            color: white;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .column-header {
+            background: linear-gradient(135deg, var(--info-color), #3182ce);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.35rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .content-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .soru-grid {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                gap: 0.5rem;
+            }
+            
+            .soru-input {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Geri Dön Butonu -->
+        <div class="mb-4">
+            <a href="{{ url_for('deneme_detay', tur=tur, deneme_id=deneme_id) }}" class="back-btn">
+                <i class="bi bi-arrow-left"></i>Detaya Dön
+            </a>
+        </div>
+
+        <!-- Form Başlığı -->
+        <div class="form-header">
+            <h1><i class="bi bi-pencil-square me-2"></i>{{ deneme.deneme_adi }} Düzenle</h1>
+            <form method="post" novalidate>
+                <div class="row justify-content-center">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="deneme_adi">Deneme Adı:</label>
+                            <input type="text" id="deneme_adi" name="deneme_adi" 
+                                   class="form-control" value="{{ deneme.deneme_adi }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="tarih">Tarih:</label>
+                            <input type="date" id="tarih" name="tarih" class="form-control"
+                                   value="{% if deneme.tarih %}{% if deneme.tarih.strftime is defined %}{{ deneme.tarih.strftime('%Y-%m-%d') }}{% else %}{{ deneme.tarih[:10] if deneme.tarih|length >= 10 else deneme.tarih }}{% endif %}{% endif %}"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+        </div>
+
+        <div class="content-container">
+            <!-- Sol Sütun - Cevap Anahtarı -->
+            <div>
+                <div class="column-header">
+                    <i class="bi bi-key me-2"></i>Cevap Anahtarı
+                </div>
+                {% for ders in dersler %}
+                <div class="ders-section">
+                    <div class="ders-title">
+                        <i class="bi bi-book"></i>{{ ders }}
+                    </div>
+                    <div class="soru-grid">
+                        {% for i in range(1, 41) %}
+                        <div class="soru-item">
+                            <span class="soru-no">{{ i }}.</span>
+                            <input type="text" class="soru-input"
+                                   name="cevap_{{ ders_adi_harita[ders] }}_{{ i }}"
+                                   value="{{ cevap_anahtari[ders][i-1] if ders in cevap_anahtari and cevap_anahtari[ders]|length >= i else '' }}"
+                                   maxlength="1"
+                                   pattern="[A-Ea-e]"
+                                   title="A, B, C, D veya E harfi giriniz"
+                                   autocomplete="off">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Sağ Sütun - Öğrenci Cevapları -->
+            <div>
+                <div class="column-header">
+                    <i class="bi bi-person me-2"></i>Öğrenci Cevapları
+                </div>
+                {% for ders in dersler %}
+                <div class="ders-section">
+                    <div class="ders-title">
+                        <i class="bi bi-book"></i>{{ ders }}
+                    </div>
+                    <div class="soru-grid">
+                        {% for i in range(1, 41) %}
+                        <div class="soru-item">
+                            <span class="soru-no">{{ i }}.</span>
+                            <input type="text" class="soru-input"
+                                   name="ogrenci_{{ ders_adi_harita[ders] }}_{{ i }}"
+                                   value="{{ ogrenci_cevaplari[ders][i-1] if ders in ogrenci_cevaplari and ogrenci_cevaplari[ders]|length >= i else '' }}"
+                                   maxlength="1"
+                                   pattern="[A-Ea-e]"
+                                   title="A, B, C, D veya E harfi giriniz"
+                                   autocomplete="off">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Kaydet Butonu -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success btn-lg me-3">
+                <i class="bi bi-check-circle me-2"></i>Değişiklikleri Kaydet
+            </button>
+            <a href="{{ url_for('deneme_detay', tur=tur, deneme_id=deneme_id) }}" class="btn btn-secondary btn-lg">
+                <i class="bi bi-x-circle me-2"></i>İptal
+            </a>
+        </div>
+
+        </form>
+    </div>
+
+    <script>
+        // Otomatik büyük harf yapma
+        document.addEventListener('input', function(e) {
+            if (e.target.matches('.soru-input')) {
+                e.target.value = e.target.value.toUpperCase();
+            }
+        });
+
+        // Enter tuşu ile sonraki input'a geçme
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.matches('.soru-input')) {
+                e.preventDefault();
+                const inputs = Array.from(document.querySelectorAll('.soru-input'));
+                const currentIndex = inputs.indexOf(e.target);
+                if (currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                }
+            }
+        });
+
+        // Form validasyonu
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const denemeAdi = document.getElementById('deneme_adi').value.trim();
+            const tarih = document.getElementById('tarih').value;
+            
+            if (!denemeAdi || !tarih) {
+                e.preventDefault();
+                alert('Lütfen deneme adı ve tarih alanlarını doldurun.');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

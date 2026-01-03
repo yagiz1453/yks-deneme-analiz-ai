@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ deneme.deneme_adi }} - Detaylar</title>
+    
+    <!-- CSS Kütüphaneleri -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+        }
+
+        .card {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.35rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 0.35rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .table {
+            border-radius: 0.35rem;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dogru {
+            background-color: #d5f4e6 !important;
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .yanlis {
+            background-color: #fadbd8 !important;
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .bos {
+            background-color: #f4f6f6 !important;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+        }
+
+        .ders-section {
+            margin-bottom: 2rem;
+        }
+
+        .ders-header {
+            background: linear-gradient(135deg, var(--info-color), #3182ce);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.35rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .bolum-container {
+            background: #f8f9fa;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .bolum-title {
+            color: #495057;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .status-icon {
+            font-size: 1.2em;
+            margin-right: 0.5rem;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #6c757d);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.35rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .no-data i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Geri Dön Butonu -->
+        <div class="mb-4">
+            <a href="/denemeler" class="back-btn">
+                <i class="bi bi-arrow-left"></i>Deneme Listesine Dön
+            </a>
+        </div>
+
+        <!-- Başlık ve Genel Bilgiler -->
+        <div class="summary-card">
+            <div class="text-center">
+                <h1 class="display-6 mb-3">{{ deneme.deneme_adi }}</h1>
+                <div class="d-flex justify-content-center gap-4 flex-wrap">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-tag-fill me-2"></i>
+                        <strong>Tür:</strong> {{ tur.upper() }}
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-calendar-fill me-2"></i>
+                        <strong>Tarih:</strong> {{ deneme.tarih }}
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-hash me-2"></i>
+                        <strong>ID:</strong> {{ deneme.deneme_id }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Genel Özet -->
+            {% if toplam_sonuc %}
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-number text-success">{{ toplam_sonuc.dogru }}</div>
+                    <div class="stat-label">Doğru</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number text-danger">{{ toplam_sonuc.yanlis }}</div>
+                    <div class="stat-label">Yanlış</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number text-secondary">{{ toplam_sonuc.bos }}</div>
+                    <div class="stat-label">Boş</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number text-info">{{ toplam_sonuc.net }}</div>
+                    <div class="stat-label">Net</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Grafik Bölümü -->
+        {% if bolum_sonuc %}
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-pie-chart me-2"></i>Cevap Dağılımı
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="cevapDagilimChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-bar-chart me-2"></i>Ders Bazlı Netler
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="dersNetChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ders Sonuçları -->
+        {% if bolum_sonuc %}
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-graph-up me-2"></i>Ders Bazında Sonuçlar
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if tur == 'ayt' %}
+                    <!-- AYT Bölüm Bazında Sonuçlar -->
+                    {% set ayt_bolumler = {
+                        'Sayısal': ['Temel Matematik', 'Geometri', 'Fizik', 'Kimya', 'Biyoloji'],
+                        'Eşit Ağırlık': ['Türkçe', 'Tarih', 'Coğrafya', 'Felsefe', 'Din Kültürü', 'Temel Matematik', 'Geometri'],
+                        'Sözel': ['Türkçe', 'Tarih', 'Coğrafya', 'Felsefe', 'Din Kültürü']
+                    } %}
+
+                    {% for bolum, dersler_bolum in ayt_bolumler.items() %}
+                        {% set bolum_dersleri = [] %}
+                        {% for ders in dersler_bolum %}
+                            {% if bolum_sonuc.get(ders) %}
+                                {% set _ = bolum_dersleri.append(ders) %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if bolum_dersleri %}
+                        <div class="bolum-container">
+                            <h3 class="bolum-title">
+                                <i class="bi bi-collection me-2"></i>{{ bolum }} Bölümü
+                            </h3>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ders</th>
+                                            <th>Doğru</th>
+                                            <th>Yanlış</th>
+                                            <th>Boş</th>
+                                            <th>Net</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ders in bolum_dersleri %}
+                                            {% set s = bolum_sonuc[ders] %}
+                                            <tr>
+                                                <td class="fw-bold">{{ ders }}</td>
+                                                <td class="dogru">{{ s.dogru }}</td>
+                                                <td class="yanlis">{{ s.yanlis }}</td>
+                                                <td class="bos">{{ s.bos }}</td>
+                                                <td class="fw-bold text-primary">{{ s.net }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+
+                {% else %}
+                    <!-- TYT Ders Bazında Sonuçlar -->
+                    <div class="row">
+                        {% for ders in ['Türkçe', 'Matematik'] %}
+                            {% if bolum_sonuc.get(ders) %}
+                            <div class="col-lg-6 mb-4">
+                                <div class="ders-section">
+                                    <div class="ders-header">
+                                        <i class="bi bi-book me-2"></i>{{ ders }}
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Doğru</th>
+                                                    <th>Yanlış</th>
+                                                    <th>Boş</th>
+                                                    <th>Net</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% set s = bolum_sonuc[ders] %}
+                                                <tr>
+                                                    <td class="dogru">{{ s.dogru }}</td>
+                                                    <td class="yanlis">{{ s.yanlis }}</td>
+                                                    <td class="bos">{{ s.bos }}</td>
+                                                    <td class="fw-bold text-primary">{{ s.net }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Sosyal Bilimler Alt Dersleri -->
+                    {% set sosyal_dersler = ['Tarih', 'Coğrafya', 'Felsefe', 'Din Kültürü ve Ahlak Bilgisi'] %}
+                    {% set sosyal_var = [] %}
+                    {% for ders in sosyal_dersler %}
+                        {% if bolum_sonuc.get(ders) %}
+                            {% set _ = sosyal_var.append(ders) %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if sosyal_var %}
+                    <div class="ders-section">
+                        <div class="ders-header">
+                            <i class="bi bi-people me-2"></i>Sosyal Bilimler
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Ders</th>
+                                        <th>Doğru</th>
+                                        <th>Yanlış</th>
+                                        <th>Boş</th>
+                                        <th>Net</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ders in sosyal_var %}
+                                        {% set s = bolum_sonuc[ders] %}
+                                        <tr>
+                                            <td class="fw-bold">{{ ders }}</td>
+                                            <td class="dogru">{{ s.dogru }}</td>
+                                            <td class="yanlis">{{ s.yanlis }}</td>
+                                            <td class="bos">{{ s.bos }}</td>
+                                            <td class="fw-bold text-primary">{{ s.net }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Fen Bilimleri Alt Dersleri -->
+                    {% set fen_dersler = ['Fizik', 'Kimya', 'Biyoloji'] %}
+                    {% set fen_var = [] %}
+                    {% for ders in fen_dersler %}
+                        {% if bolum_sonuc.get(ders) %}
+                            {% set _ = fen_var.append(ders) %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if fen_var %}
+                    <div class="ders-section">
+                        <div class="ders-header">
+                            <i class="bi bi-flask me-2"></i>Fen Bilimleri
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Ders</th>
+                                        <th>Doğru</th>
+                                        <th>Yanlış</th>
+                                        <th>Boş</th>
+                                        <th>Net</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ders in fen_var %}
+                                        {% set s = bolum_sonuc[ders] %}
+                                        <tr>
+                                            <td class="fw-bold">{{ ders }}</td>
+                                            <td class="dogru">{{ s.dogru }}</td>
+                                            <td class="yanlis">{{ s.yanlis }}</td>
+                                            <td class="bos">{{ s.bos }}</td>
+                                            <td class="fw-bold text-primary">{{ s.net }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Detaylı Cevaplar -->
+        {% if cevaplar %}
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-list-check me-2"></i>Detaylı Cevaplar
+                </h6>
+            </div>
+            <div class="card-body">
+                {% set dersler = cevaplar | map(attribute='ders') | unique | list %}
+                {% for ders in dersler %}
+                    <div class="ders-section">
+                        <div class="ders-header">
+                            <i class="bi bi-book me-2"></i>{{ ders }}
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 10%;">Soru No</th>
+                                        <th style="width: 15%;">Doğru Cevap</th>
+                                        <th style="width: 15%;">Öğrenci Cevabı</th>
+                                        <th style="width: 60%;">Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cevap in cevaplar | selectattr('ders', 'equalto', ders) | sort(attribute='soru_no') %}
+                                    <tr class="{% if not cevap.ogrenci_cevap %}bos{% elif cevap.ogrenci_cevap == cevap.dogru_cevap %}dogru{% else %}yanlis{% endif %}">
+                                        <td class="fw-bold">{{ cevap.soru_no }}</td>
+                                        <td class="fw-bold">{{ cevap.dogru_cevap if cevap.dogru_cevap else '-' }}</td>
+                                        <td class="fw-bold">{{ cevap.ogrenci_cevap if cevap.ogrenci_cevap else 'Boş' }}</td>
+                                        <td>
+                                            {% if not cevap.ogrenci_cevap %}
+                                                <span class="status-icon">⚪</span> Boş Bırakıldı
+                                            {% elif cevap.ogrenci_cevap == cevap.dogru_cevap %}
+                                                <span class="status-icon">✅</span> Doğru
+                                            {% else %}
+                                                <span class="status-icon">❌</span> Yanlış
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="no-data">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <h4>Cevap verileri bulunamadı</h4>
+                    <p>Bu deneme için cevap bilgileri yüklenemedi.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Grafikleri oluştur
+        {% if toplam_sonuc %}
+        // Cevap Dağılımı Grafiği
+        const cevapCtx = document.getElementById('cevapDagilimChart').getContext('2d');
+        new Chart(cevapCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Doğru', 'Yanlış', 'Boş'],
+                datasets: [{
+                    data: [{{ toplam_sonuc.dogru }}, {{ toplam_sonuc.yanlis }}, {{ toplam_sonuc.bos }}],
+                    backgroundColor: ['#1cc88a', '#e74a3b', '#858796'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        {% if bolum_sonuc %}
+        // Ders Bazlı Net Grafiği
+        const dersCtx = document.getElementById('dersNetChart').getContext('2d');
+        const dersler = {{ bolum_sonuc.keys() | list | tojson }};
+        const netler = [{% for ders in bolum_sonuc.keys() %}{{ bolum_sonuc[ders].net }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+        new Chart(dersCtx, {
+            type: 'bar',
+            data: {
+                labels: dersler,
+                datasets: [{
+                    label: 'Net',
+                    data: netler,
+                    backgroundColor: '#4e73df',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YKS Deneme Analiz Paneli</title>
+
+    <!-- CSS ve JS Kütüphaneleri -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+        }
+
+        .card {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+        }
+
+        .progress {
+            height: 1.5rem;
+            border-radius: 0.35rem;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 0.25em solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-color);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        #mainContent {
+            transition: all 0.3s;
+        }
+
+        .sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background: #fff;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+        }
+
+        /* Koç Sohbet Kutusu Stil */
+        #coachChatBtn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1051;
+            background: #4e73df;
+            color: #fff;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            font-size: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #coachChatBox {
+            position: fixed;
+            bottom: 100px;
+            right: 32px;
+            width: 350px;
+            max-width: 95vw;
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+            z-index: 1052;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #coachChatBox.active { display: flex; }
+        #coachChatHeader {
+            background: #4e73df;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #coachChatBody {
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            background: #f8f9fc;
+            font-size: 0.97rem;
+        }
+        #coachChatInputArea {
+            display: flex;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+        #coachChatInput {
+            flex: 1;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
+        }
+        #coachChatSendBtn {
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            padding: 0 1.2rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 0 0 1rem 0;
+        }
+        .coach-msg-user {
+            background: #e3e6f0;
+            color: #222;
+            border-radius: 1rem 1rem 0 1rem;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-end;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        .coach-msg-coach {
+            background: #4e73df;
+            color: #fff;
+            border-radius: 1rem 1rem 1rem 0;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+            max-width: 80%;
+            word-break: break-word;
+        }
+
+        /* Çerez Bildirimi Stili */
+        #cookie-notice {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(33, 37, 41, 0.95);
+            color: #fff;
+            padding: 1rem;
+            z-index: 1060;
+            display: none;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        #cookie-notice.show {
+            display: block;
+        }
+        #cookie-notice .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        #cookie-notice p {
+            margin: 0;
+        }
+        #cookie-btn {
+            background: #4e73df;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        #cookie-btn:hover {
+            background: #3759c0;
+        }
+        @media (max-width: 768px) {
+            #cookie-notice .container {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Flash mesajları -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar border-end" id="sidebar">
+            <div class="sidebar-heading p-3">
+                <h4 class="text-center">YKS Analiz</h4>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/panel" class="list-group-item list-group-item-action active">
+                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                </a>
+                <a href="/denemeler" class="list-group-item list-group-item-action">
+                    <i class="bi bi-journal-text me-2"></i>Denemeler
+                </a>
+                <a href="/istatistikler" class="list-group-item list-group-item-action">
+                    <i class="bi bi-graph-up me-2"></i>İstatistikler
+                </a>
+                <a href="/ders-analizleri?tur=TYT" class="list-group-item list-group-item-action">
+                    <i class="bi bi-book me-2"></i>TYT Ders Analizleri
+                </a>
+                <a href="/ders-analizleri?tur=AYT" class="list-group-item list-group-item-action">
+                    <i class="bi bi-book-half me-2"></i>AYT Ders Analizleri
+                </a>
+                <a href="/logout" class="list-group-item list-group-item-action text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="mainContent" class="container-fluid py-4">
+            <!-- Başlık ve Filtreler -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Deneme Analiz Paneli</h1>
+                <div class="d-flex">
+                    <select id="turFiltre" class="form-select me-2 w-auto">
+                        <option value="">Tüm Denemeler</option>
+                        <option value="TYT">TYT</option>
+                        <option value="AYT">AYT</option>
+                    </select>
+                    <select id="zamanAraligi" class="form-select me-2 w-auto">
+                        <option value="all">Tüm Zamanlar</option>
+                        <option value="3m">Son 3 Ay</option>
+                        <option value="6m">Son 6 Ay</option>
+                    </select>
+                    <button id="filtreleBtn" class="btn btn-primary me-2">
+                        <span id="filtreleText">Filtrele</span>
+                        <span id="filtreleLoading" class="loading-spinner d-none"></span>
+                    </button>
+                    <a href="/yeni-deneme" class="btn btn-success">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Deneme
+                    </a>
+                </div>
+            </div>
+
+            <!-- Bilgi Kartları -->
+            <div class="row mb-4">
+                <!-- Toplam Deneme -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Toplam Deneme</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="toplamDeneme">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-journal-bookmark-fill fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- En Yüksek Net -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        En Yüksek Net</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="enYuksekNet">0</div>
+                                    <div class="text-xs text-muted" id="enYuksekNetBilgi"></div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-trophy-fill fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Son Deneme -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Son Deneme</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="sonDenemeNet">0</div>
+                                    <div class="text-xs text-muted" id="sonDenemeBilgi"></div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-clock-history fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ortalama Net -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Ortalama Net</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="ortalamaNet">0</div>
+                                    <div class="text-xs text-muted">Son 5 deneme</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-graph-up fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafikler -->
+            <div class="row">
+                <!-- Net Değişim Grafiği -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Net Değişimi</h6>
+                            <div class="dropdown no-arrow">
+                                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow animated--fade-in"
+                                    aria-labelledby="dropdownMenuLink">
+                                    <li><a class="dropdown-item" href="#" onclick="updateChartData('monthly')">Aylık</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateChartData('weekly')">Haftalık</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-area">
+                                <canvas id="netDegisimChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ders Dağılımı -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Ders Bazlı Ortalamalar</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-pie pt-4 pb-2">
+                                <canvas id="dersOrtalamalariChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center small">
+                                <span class="me-2">
+                                    <i class="bi bi-square-fill text-success"></i> Doğru
+                                </span>
+                                <span class="me-2">
+                                    <i class="bi bi-square-fill text-danger"></i> Yanlış
+                                </span>
+                                <span class="me-2">
+                                    <i class="bi bi-square-fill text-secondary"></i> Boş
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detaylı İstatistikler -->
+            <div class="row">
+                <!-- Doğru/Yanlış/Bos Dağılımı -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Cevaplama İstatistikleri</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="small font-weight-bold">Doğru Cevaplar <span class="float-right" id="dogruYuzde">0%</span></h4>
+                                    <div class="progress mb-4">
+                                        <div id="dogruProgress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4 class="small font-weight-bold">Yanlış Cevaplar <span class="float-right" id="yanlisYuzde">0%</span></h4>
+                                    <div class="progress mb-4">
+                                        <div id="yanlisProgress" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4 class="small font-weight-bold">Boş Bırakılanlar <span class="float-right" id="bosYuzde">0%</span></h4>
+                                    <div class="progress mb-4">
+                                        <div id="bosProgress" class="progress-bar bg-secondary" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4 class="small font-weight-bold">Net Başarı <span class="float-right" id="netBasariYuzde">0%</span></h4>
+                                    <div class="progress mb-4">
+                                        <div id="netBasariProgress" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ders Bazlı Netler -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Ders Bazlı Netler</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="dersBazliChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deneme Geçmişi Tablosu -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Deneme Geçmişi</h6>
+                    <div>
+                        <button class="btn btn-sm btn-primary" onclick="loadData()">
+                            <i class="bi bi-arrow-clockwise"></i> Yenile
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="denemeTablosu" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Deneme Adı</th>
+                                    <th>Tarih</th>
+                                    <th>Tür</th>
+                                    <th>Toplam Net</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="denemeTablosuBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">Veri yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deneme Detay Modal -->
+    <div class="modal fade" id="detayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detayModalBaslik">Deneme Detayları</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detayModalIcerik">
+                    <div class="text-center my-5">
+                        <div class="loading-spinner mx-auto"></div>
+                        <p class="mt-3">Yükleniyor...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Koç Sohbet Kutusu -->
+    <button id="coachChatBtn" title="Koç ile Sohbet">
+        <i class="bi bi-chat-dots"></i>
+    </button>
+    <div id="coachChatBox">
+        <div id="coachChatHeader">
+            <span><i class="bi bi-person-heart"></i> Koç</span>
+            <div>
+                <button class="btn btn-sm btn-light me-2" onclick="clearCoachChat()" title="Sohbeti Temizle" style="border-radius:50%"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-sm btn-light" onclick="toggleCoachChat()" style="border-radius:50%"><i class="bi bi-x"></i></button>
+            </div>
+        </div>
+        <div id="coachChatBody">
+            <div class="text-center text-muted my-3" id="coachChatWelcome">
+                Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.
+            </div>
+        </div>
+        <div id="coachChatInputArea">
+            <input id="coachChatInput" type="text" placeholder="Mesajınızı yazın..." autocomplete="off" />
+            <button id="coachChatSendBtn"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // Global değişkenler
+        let netDegisimChart, dersOrtalamalariChart, dersBazliChart;
+        let chartData = {};
+
+        // Sayfa yüklendiğinde verileri çek
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+
+            // Filtrele butonu event listener
+            document.getElementById('filtreleBtn').addEventListener('click', function() {
+                loadData();
+            });
+        });
+
+        // Veri yükleme fonksiyonu
+        function loadData() {
+            toggleLoading(true);
+
+            const tur = document.getElementById('turFiltre').value;
+            const zamanAraligi = document.getElementById('zamanAraligi').value;
+
+            fetch(`/api/istatistikler?tur=${tur}&zaman_araligi=${zamanAraligi}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    // Verileri işle
+                    chartData = data;
+                    updateDashboard(data);
+                    toggleLoading(false);
+                })
+                .catch(error => {
+                    console.error('Veri yüklenirken hata:', error);
+                    showError('Veriler yüklenirken bir hata oluştu: ' + error.message);
+                    toggleLoading(false);
+                });
+        }
+
+        // Dashboard'u güncelle
+        function updateDashboard(data) {
+            // Genel kartlar
+            document.getElementById('toplamDeneme').textContent = data.genel_kartlar.toplam_deneme;
+
+            if (data.genel_kartlar.en_yuksek_net.net) {
+                document.getElementById('enYuksekNet').textContent = data.genel_kartlar.en_yuksek_net.net;
+                document.getElementById('enYuksekNetBilgi').textContent =
+                    `${data.genel_kartlar.en_yuksek_net.deneme_adi} (${data.genel_kartlar.en_yuksek_net.tarih})`;
+            }
+
+            if (data.genel_kartlar.son_deneme.toplam_net) {
+                document.getElementById('sonDenemeNet').textContent = data.genel_kartlar.son_deneme.toplam_net;
+                document.getElementById('sonDenemeBilgi').textContent =
+                    `${data.genel_kartlar.son_deneme.deneme_adi} (${formatDate(data.genel_kartlar.son_deneme.tarih)})`;
+            }
+
+            // Ortalama net hesapla
+            if (data.son_denemeler && data.son_denemeler.length > 0) {
+                const ortalama = data.son_denemeler.reduce((sum, deneme) => sum + (deneme.toplam_net || 0), 0) / data.son_denemeler.length;
+                document.getElementById('ortalamaNet').textContent = ortalama.toFixed(1);
+            }
+
+            // Cevaplama istatistikleri
+            const cevaplama = data.cevaplama_istatistikleri;
+            if (cevaplama.toplam_soru > 0) {
+                const dogruYuzde = (cevaplama.dogru / cevaplama.toplam_soru * 100).toFixed(1);
+                const yanlisYuzde = (cevaplama.yanlis / cevaplama.toplam_soru * 100).toFixed(1);
+                const bosYuzde = (cevaplama.bos / cevaplama.toplam_soru * 100).toFixed(1);
+                const netYuzde = ((cevaplama.dogru - (cevaplama.yanlis / 4)) / cevaplama.toplam_soru * 100).toFixed(1);
+
+                document.getElementById('dogruYuzde').textContent = `${dogruYuzde}%`;
+                document.getElementById('yanlisYuzde').textContent = `${yanlisYuzde}%`;
+                document.getElementById('bosYuzde').textContent = `${bosYuzde}%`;
+                document.getElementById('netBasariYuzde').textContent = `${netYuzde}%`;
+
+                document.getElementById('dogruProgress').style.width = `${dogruYuzde}%`;
+                document.getElementById('yanlisProgress').style.width = `${yanlisYuzde}%`;
+                document.getElementById('bosProgress').style.width = `${bosYuzde}%`;
+                document.getElementById('netBasariProgress').style.width = `${netYuzde}%`;
+            }
+
+            // Grafikleri oluştur
+            createCharts(data);
+
+            // Tabloyu güncelle
+            updateTable(data.son_denemeler);
+        }
+
+        // Grafikleri oluştur
+        function createCharts(data) {
+            // Net Değişim Grafiği
+            const netDegisimCtx = document.getElementById('netDegisimChart').getContext('2d');
+
+            if (netDegisimChart) {
+                netDegisimChart.destroy();
+            }
+
+            netDegisimChart = new Chart(netDegisimCtx, {
+                type: 'line',
+                data: {
+                    labels: data.zaman_serisi.labels,
+                    datasets: [
+                        {
+                            label: 'TYT Net',
+                            data: data.zaman_serisi.tyt,
+                            borderColor: '#4e73df',
+                            backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#4e73df'
+                        },
+                        data.zaman_serisi.ayt && {
+                            label: 'AYT Net',
+                            data: data.zaman_serisi.ayt,
+                            borderColor: '#1cc88a',
+                            backgroundColor: 'rgba(28, 200, 138, 0.05)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#1cc88a'
+                        }
+                    ].filter(Boolean)
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw} net`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Ders Bazlı Ortalamalar Grafiği
+            const dersOrtalamalariCtx = document.getElementById('dersOrtalamalariChart').getContext('2d');
+
+            if (dersOrtalamalariChart) {
+                dersOrtalamalariChart.destroy();
+            }
+
+            const dersler = Object.keys(data.ders_istatistikleri);
+            dersOrtalamalariChart = new Chart(dersOrtalamalariCtx, {
+                type: 'bar',
+                data: {
+                    labels: dersler,
+                    datasets: [
+                        {
+                            label: 'Doğru',
+                            data: dersler.map(d => data.ders_istatistikleri[d].dogru),
+                            backgroundColor: '#1cc88a',
+                            borderColor: '#1cc88a',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Yanlış',
+                            data: dersler.map(d => data.ders_istatistikleri[d].yanlis),
+                            backgroundColor: '#e74a3b',
+                            borderColor: '#e74a3b',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Boş',
+                            data: dersler.map(d => data.ders_istatistikleri[d].bos),
+                            backgroundColor: '#858796',
+                            borderColor: '#858796',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Ders Bazlı Netler Grafiği (ApexCharts)
+            if (data.ders_istatistikleri) {
+                const dersNetleri = Object.entries(data.ders_istatistikleri).map(([ders, ist]) => {
+                    return {
+                        ders: ders,
+                        net: ist.net
+                    };
+                });
+
+                const options = {
+                    series: [{
+                        name: 'Net',
+                        data: dersNetleri.map(item => item.net)
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 350,
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            borderRadius: 4,
+                            horizontal: true,
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    colors: ['#4e73df'],
+                    xaxis: {
+                        categories: dersNetleri.map(item => item.ders),
+                        title: {
+                            text: 'Net'
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Dersler'
+                        }
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return val + " net";
+                            }
+                        }
+                    }
+                };
+
+                if (dersBazliChart) {
+                    dersBazliChart.destroy();
+                }
+
+                dersBazliChart = new ApexCharts(document.querySelector("#dersBazliChart"), options);
+                dersBazliChart.render();
+            }
+        }
+
+        // Tabloyu güncelle
+        function updateTable(denemeler) {
+            const tbody = document.getElementById('denemeTablosuBody');
+
+            if (!denemeler || denemeler.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Henüz deneme bulunmamaktadır</td></tr>';
+                return;
+            }
+
+            let html = '';
+            denemeler.forEach(deneme => {
+                html += `
+                <tr>
+                    <td>${deneme.deneme_adi}</td>
+                    <td>${formatDate(deneme.tarih)}</td>
+                    <td><span class="badge bg-${deneme.tur === 'TYT' ? 'primary' : 'warning text-dark'}">${deneme.tur}</span></td>
+                    <td>${deneme.toplam_net || '0'}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-info" onclick="showDenemeDetay('${deneme.tur.toLowerCase()}', '${deneme.uuid}')" title="Detay">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                            <a href="/deneme/duzenle/${deneme.tur.toLowerCase()}/${deneme.uuid}" class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteDeneme('${deneme.uuid}', '${deneme.tur.toLowerCase()}')" title="Sil">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+
+        // Deneme detaylarını göster
+        function showDenemeDetay(tur, denemeId) {
+          window.location.href = `/deneme/${tur}/${denemeId}`;
+        }
+
+
+        // Deneme silme fonksiyonu ekle
+        function deleteDeneme(denemeId, tur) {
+            if (confirm('Bu denemeyi silmek istediğinize emin misiniz?')) {
+                fetch(`/deneme/${tur}/${denemeId}/sil`, {
+                    method: 'POST'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        loadData(); // Tabloyu yenile
+                        showAlert('Deneme başarıyla silindi', 'success');
+                    } else {
+                        throw new Error('Silme işlemi başarısız');
+                    }
+                })
+                .catch(error => {
+                    console.error('Silme hatası:', error);
+                    showAlert('Deneme silinirken hata oluştu', 'danger');
+                });
+            }
+        }
+
+        // Yardımcı fonksiyonlar
+        function toggleLoading(show) {
+            document.getElementById('filtreleText').style.display = show ? 'none' : 'inline';
+            document.getElementById('filtreleLoading').classList.toggle('d-none', !show);
+            document.getElementById('filtreleBtn').disabled = show;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('tr-TR');
+        }
+
+        function showError(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.role = 'alert';
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            const container = document.getElementById('mainContent');
+            container.prepend(alert);
+        }
+
+        // Grafik verisini güncelle (filtreleme için)
+        function updateChartData(range) {
+            if (!chartData) return;
+
+            // Örnek filtreleme - gerçek uygulamada API'den yeni veri çekmelisiniz
+            const labels = chartData.zaman_serisi.labels;
+            const tytData = chartData.zaman_serisi.tyt;
+            const aytData = chartData.zaman_serisi.ayt;
+
+            if (range === 'weekly') {
+                // Haftalık filtreleme örneği
+                netDegisimChart.data.labels = labels.filter((_, i) => i % 4 === 0);
+                netDegisimChart.data.datasets[0].data = tytData.filter((_, i) => i % 4 === 0);
+                if (aytData) {
+                    netDegisimChart.data.datasets[1].data = aytData.filter((_, i) => i % 4 === 0);
+                }
+            } else {
+                // Aylık (orijinal veri)
+                netDegisimChart.data.labels = labels;
+                netDegisimChart.data.datasets[0].data = tytData;
+                if (aytData) {
+                    netDegisimChart.data.datasets[1].data = aytData;
+                }
+            }
+
+            netDegisimChart.update();
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.role = 'alert';
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            const container = document.getElementById('mainContent');
+            container.prepend(alert);
+
+            // Otomatik olarak kaybolması için (isteğe bağlı)
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Koç Sohbet Kutusu Script (istatistikler.html ile aynı)
+        function toggleCoachChat(forceState) {
+            const box = document.getElementById('coachChatBox');
+            const btn = document.getElementById('coachChatBtn');
+            let willBeActive;
+
+            if (typeof forceState === 'boolean') {
+                willBeActive = forceState;
+                if (willBeActive) {
+                    box.classList.add('active');
+                    btn.innerHTML = '<i class="bi bi-x"></i>';
+                    setTimeout(() => {
+                        document.getElementById('coachChatInput').focus();
+                    }, 200);
+                } else {
+                    box.classList.remove('active');
+                    btn.innerHTML = '<i class="bi bi-chat-dots"></i>';
+                }
+            } else {
+                box.classList.toggle('active');
+                willBeActive = box.classList.contains('active');
+                btn.innerHTML = willBeActive ? '<i class="bi bi-x"></i>' : '<i class="bi bi-chat-dots"></i>';
+                if (willBeActive) {
+                    setTimeout(() => {
+                        document.getElementById('coachChatInput').focus();
+                    }, 200);
+                }
+            }
+            localStorage.setItem('coachChatOpen', willBeActive ? '1' : '0');
+        }
+        document.getElementById('coachChatBtn').onclick = function() { toggleCoachChat(); };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('coachChatOpen') === '1') {
+                toggleCoachChat(true);
+            }
+            loadChatHistory();
+        });
+
+        document.getElementById('coachChatInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                sendCoachMessageStream();
+            }
+        });
+        document.getElementById('coachChatSendBtn').onclick = sendCoachMessageStream;
+
+        let coachChatLoading = false;
+        const MAX_MESSAGE_LENGTH = 300;
+
+        function sendCoachMessageStream() {
+            if (coachChatLoading) return;
+            const input = document.getElementById('coachChatInput');
+            const msg = input.value.trim();
+
+            if (msg.length > MAX_MESSAGE_LENGTH) {
+                appendCoachMsg('coach', `Mesaj çok uzun (en fazla ${MAX_MESSAGE_LENGTH} karakter yazabilirsin).`);
+                return;
+            }
+            if (!msg) return;
+            appendCoachMsg('user', msg);
+            input.value = '';
+            coachChatLoading = true;
+            // Spinner ekle
+            const body = document.getElementById('coachChatBody');
+            const spinnerDiv = document.createElement('div');
+            spinnerDiv.className = 'coach-msg-coach';
+            spinnerDiv.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            body.appendChild(spinnerDiv);
+            body.scrollTop = body.scrollHeight;
+
+            // SSE ile streaming başlat (GET)
+            const evtSource = new EventSource(`/api/coach-chat-stream?message=${encodeURIComponent(msg)}`);
+
+            let coachMsg = '';
+            evtSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.delta) {
+                    coachMsg += data.delta;
+                    spinnerDiv.innerHTML = coachMsg;
+                    body.scrollTop = body.scrollHeight;
+                }
+                if (data.done) {
+                    coachChatLoading = false;
+                    evtSource.close();
+                }
+                if (data.error) {
+                    spinnerDiv.innerHTML = data.error;
+                    coachChatLoading = false;
+                    evtSource.close();
+                }
+            };
+            evtSource.onerror = function() {
+                spinnerDiv.innerHTML = 'Koç şu an yanıt veremiyor.';
+                coachChatLoading = false;
+                evtSource.close();
+            };
+            // Welcome mesajını gizle
+            const welcome = document.getElementById('coachChatWelcome');
+            if (welcome) welcome.style.display = 'none';
+        }
+
+        function appendCoachMsg(who, text) {
+            const body = document.getElementById('coachChatBody');
+            const div = document.createElement('div');
+            div.className = who === 'user' ? 'coach-msg-user' : 'coach-msg-coach';
+            div.innerHTML = text;
+            body.appendChild(div);
+            body.scrollTop = body.scrollHeight;
+            // Welcome mesajını gizle
+            const welcome = document.getElementById('coachChatWelcome');
+            if (welcome) welcome.style.display = 'none';
+        }
+
+        // Sohbet geçmişini yükle (sayfa yenilendiğinde)
+        function loadChatHistory() {
+            fetch('/api/coach-chat-history', {
+                method: 'GET',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.history && data.history.length > 0) {
+                    const chatBody = document.getElementById('coachChatBody');
+                    chatBody.innerHTML = '';
+                    data.history.forEach(turn => {
+                        appendCoachMsg('user', turn.user);
+                        appendCoachMsg('coach', turn.coach);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Sohbet geçmişi yüklenirken hata:', error);
+            });
+        }
+
+        function clearCoachChat() {
+            if (!confirm("Tüm sohbet geçmişini silmek istediğine emin misin?")) return;
+            fetch('/api/coach-chat-clear', {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const chatBody = document.getElementById('coachChatBody');
+                        chatBody.innerHTML = '<div class="text-center text-muted my-3" id="coachChatWelcome">Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Sohbet temizlenirken hata:', error);
+                });
+        }
+
+        // Çerez Bildirimi Script
+        document.addEventListener('DOMContentLoaded', function() {
+            const cookieNotice = document.getElementById('cookie-notice');
+            const cookieBtn = document.getElementById('cookie-btn');
+
+            // Çerez onayı kontrol et
+            if (!localStorage.getItem('cookieConsent')) {
+                cookieNotice.classList.add('show');
+            }
+
+            // Çerez onayı ver
+            cookieBtn.addEventListener('click', function() {
+                localStorage.setItem('cookieConsent', 'true');
+                cookieNotice.classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html>

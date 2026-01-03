@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni Deneme Ekle - YKS Analiz Paneli</title>
+    
+    <!-- CSS Kütüphaneleri -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+        }
+
+        .card {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            border: none;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom: none;
+            font-weight: 600;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.35rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-header h1 {
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.35rem;
+            border: 1px solid #d1d3e2;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        .btn {
+            border-radius: 0.35rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+            border: none;
+            color: white;
+            text-decoration: none;
+        }
+
+        .upload-btn i {
+            font-size: 1.5rem;
+        }
+
+        #optikBtn {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+        }
+
+        #ocrBtn {
+            background: linear-gradient(135deg, var(--info-color), #3182ce);
+        }
+
+        .content-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .column {
+            background: white;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+        }
+
+        .column-header {
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.35rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .ders-section {
+            background: #f8f9fa;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .ders-title {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .soru-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .soru-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .soru-no {
+            font-size: 0.8em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .soru-input {
+            width: 45px;
+            height: 45px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 0.35rem;
+            border: 2px solid #d1d3e2;
+            transition: all 0.3s;
+        }
+
+        .soru-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            transform: scale(1.05);
+        }
+
+        .soru-input:valid {
+            border-color: var(--success-color);
+        }
+
+        .istatistik-textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            padding: 0.75rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+            resize: vertical;
+            background-color: #f8f9fa;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            color: white;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .alert {
+            border-radius: 0.35rem;
+            border: none;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+            color: white;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, var(--danger-color), #e53e3e);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .content-container {
+                grid-template-columns: 1fr;
+            }
+
+            .soru-grid {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                gap: 0.5rem;
+            }
+
+            .soru-input {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .upload-btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Başlık -->
+        <div class="form-header">
+            <h1><i class="bi bi-plus-circle me-2"></i>Yeni Deneme Ekle</h1>
+
+            <!-- Flash Mesajları -->
+            <div id="alert-container">
+             {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            </div>
+        </div>
+
+        <!-- *** FORM TAGI BURADA BAŞLIYOR *** -->
+        <form method="POST" action="/yeni-deneme" id="denemeForm">
+            <div class="form-header" style="background: none; color: inherit; padding: 0; margin-bottom: 1rem;">
+                <div class="row justify-content-center">
+                    <div class="col-md-3">
+                        <div class="mb-3 text-start">
+                            <label for="deneme_adi" class="form-label text-dark">Deneme Adı:</label>
+                            <input type="text" id="deneme_adi" name="deneme_adi" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3 text-start">
+                            <label for="tarih" class="form-label text-dark">Tarih:</label>
+                            <input type="date" id="tarih" name="tarih" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3 text-start">
+                            <label for="tur" class="form-label text-dark">Deneme Türü:</label>
+                            <select id="tur" name="tur" class="form-select" required>
+                                <option value="">Seçiniz</option>
+                                <option value="TYT">TYT</option>
+                                <option value="AYT">AYT</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mb-4">
+                    <button id="optikBtn" type="button" class="upload-btn">
+                        <i class="bi bi-check-square"></i> Optik Form Yükle
+                    </button>
+                    <button id="ocrBtn" type="button" class="upload-btn">
+                        <i class="bi bi-file-text"></i> Cevap Anahtarı Yükle (OCR)
+                    </button>
+                </div>
+            </div>
+
+            <div id="contentContainer" class="content-container">
+                <!-- Dersler burada dinamik olarak oluşturulacak -->
+            </div>
+
+            <!-- Kaydet butonu -->
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle me-2"></i>Kaydet
+                </button>
+            </div>
+        <!-- *** FORM TAGI BURADA BİTİYOR *** -->
+        </form>
+    </div>
+
+    <!-- Yükleme Overlay'i -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+        <div id="loadingText" style="margin-top: 20px; font-size: 1.2em;">Yükleniyor...</div>
+    </div>
+
+    <script>
+        // Global değişkenler
+        let currentPopup = null;
+        const tytDersler = new Map([
+            ['Türkçe', 40],
+            ['Sosyal Bilimler', 20],
+            ['Temel Matematik', 40],
+            ['Fen Bilimleri', 20]
+        ]);
+        const aytDersler = new Map([
+            ['Matematik', 40],
+            ['Fen Bilimleri', 40],
+            ['Türk Dili ve Edebiyatı – Sosyal Bilimler 1', 40],
+            ['Sosyal Bilimler 2', 40]
+        ]);
+        let currentDersler = tytDersler;
+        let currentExamType = 'TYT'; // Default sınav tipi
+
+        // Bu fonksiyon, backend'deki normalize_subject ile BİREBİR AYNI olmalıdır.
+        function normalizeSubject(subject) {
+            if (!subject || typeof subject !== 'string') return '';
+
+            return subject.normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "") // Aksanları kaldır
+                .replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i')
+                .replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u')
+                .replace(/\s+/g, '_') // Boşlukları alt çizgi yap
+                .replace(/[^a-zA-Z0-9_]/g, '') // Sadece izin verilen karakterler
+                .toLowerCase();
+        }
+
+        window.addEventListener('message', function(event) {
+            if (event.data?.type === "roiReady") {
+                if (currentPopup && !currentPopup.closed) {
+                    const dersListesi = Array.from(currentDersler.keys());
+                    currentPopup.postMessage({
+                        type: "setDersler",
+                        dersler: dersListesi,
+                        examType: currentExamType
+                    }, "*");
+                    console.log("ROI penceresi hazır, dersler gönderildi:", dersListesi);
+                }
+                return;
+            }
+
+            if (event.data?.type !== 'ocrResults') {
+                console.warn("Geçersiz mesaj türü alındı:", event.data);
+                return;
+            }
+
+            const { results, isOptik, examType } = event.data;
+            console.log(`📩 Mesaj alındı | Optik mi?: ${isOptik}, Sınav Tipi: ${examType}`);
+            console.log("📚 Gelen veriler:", results);
+
+            if (examType && examType !== currentExamType) {
+                document.getElementById('tur').value = examType;
+                updateDersLists();
+                renderDerslerUI();
+            }
+
+            processResults(results, isOptik);
+            hideLoadingOverlay();
+            if (isOptik) focusSubmitButton();
+        });
+
+        document.getElementById('optikBtn').addEventListener('click', () => handleUpload(true));
+        document.getElementById('ocrBtn').addEventListener('click', () => handleUpload(false));
+
+        document.getElementById('tur').addEventListener('change', function() {
+            currentExamType = this.value;
+            updateDersLists();
+            renderDerslerUI();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            const localDate = new Date(now.getTime() - (offset*60*1000));
+            document.getElementById('tarih').value = localDate.toISOString().split('T')[0];
+            renderDerslerUI();
+        });
+
+        function updateDersLists() {
+            currentExamType = document.getElementById('tur').value;
+            currentDersler = currentExamType === 'AYT' ? aytDersler : tytDersler;
+        }
+
+        function handleUpload(isOptik) {
+            if (currentExamType === '') {
+                showAlert('Lütfen önce deneme türünü (TYT/AYT) seçin!', 'danger');
+                return;
+            }
+
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('exam_type', currentExamType);
+
+                const url = isOptik ? '/upload-optik' : '/upload';
+                uploadFile(url, formData);
+            };
+            input.click();
+        }
+
+        function uploadFile(url, formData) {
+            showLoadingOverlay('Dosya yükleniyor...');
+            fetch(url, { method: 'POST', body: formData })
+            .then(response => {
+                if (!response.ok) throw new Error(`Sunucu hatası: ${response.statusText}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                if (data.redirect_url) {
+                    const redirectUrl = data.redirect_url + (data.redirect_url.includes('?') ? '&' : '?') +
+                                       `exam_type=${currentExamType}`;
+                    handleRedirect(redirectUrl);
+                } else {
+                    throw new Error("Yönlendirme URL'si alınamadı.");
+                }
+            })
+            .catch(err => {
+                hideLoadingOverlay();
+                showAlert(`Hata: ${err.message}`, 'danger');
+                console.error('Yükleme hatası:', err);
+            });
+        }
+
+        function handleRedirect(redirectUrl) {
+            document.getElementById('loadingText').textContent = 'Lütfen açılan pencerede bölge seçimini yapın...';
+            currentPopup = window.open(redirectUrl, '_blank', 'width=1200,height=800');
+
+            const checkPopup = setInterval(() => {
+                if (currentPopup && currentPopup.closed) {
+                    clearInterval(checkPopup);
+                    hideLoadingOverlay();
+                    currentPopup = null;
+                }
+            }, 500);
+        }
+
+        function processResults(results, isOptik) {
+            const prefix = isOptik ? 'ogrenci' : 'cevap';
+            console.log(`📝 İşleniyor: ${isOptik ? 'Öğrenci cevapları' : 'Cevap anahtarı'}`);
+
+            Object.entries(results).forEach(([subjectKey, data]) => {
+                console.log(`🔍 Ders işleniyor: ${subjectKey}`);
+                processSubjectAnswers(subjectKey, data.answers, prefix);
+                if (isOptik && data.stats) {
+                    processSubjectStats(subjectKey, data.stats);
+                }
+            });
+            showAlert('✅ Veriler forma başarıyla işlendi.', 'success');
+        }
+
+        function processSubjectAnswers(subjectKey, answers, prefix) {
+            if (!answers) {
+                console.warn(`❌ ${subjectKey} için cevaplar bulunamadı!`);
+                return;
+            }
+
+            const normalizedSubjectKey = normalizeSubject(subjectKey);
+            let inputsUpdated = 0;
+
+            Object.entries(answers).forEach(([qNo, val]) => {
+                const inputName = `${prefix}_${normalizedSubjectKey}_${qNo}`;
+                const input = document.querySelector(`input[name="${inputName}"]`);
+                if (input) {
+                    input.value = (val || '').toUpperCase();
+                    inputsUpdated++;
+                }
+            });
+            console.log(`✅ ${subjectKey} için ${inputsUpdated} cevap alanı güncellendi.`);
+        }
+
+        function processSubjectStats(subjectKey, stats) {
+            if (!stats) return;
+            const normalizedSubjectKey = normalizeSubject(subjectKey);
+            const textarea = document.getElementById(`istatistik_${normalizedSubjectKey}`);
+            if (textarea) {
+                textarea.value = formatStats(stats);
+                console.log(`📊 ${subjectKey} için istatistikler eklendi.`);
+            } else {
+                console.warn(`❌ İstatistik alanı bulunamadı: istatistik_${normalizedSubjectKey}`);
+            }
+        }
+
+        function renderDerslerUI() {
+            const container = document.getElementById('contentContainer');
+            container.innerHTML = '';
+
+            const leftColumn = document.createElement('div');
+            leftColumn.className = 'column';
+            leftColumn.innerHTML = `<div class="column-header"><i class="bi bi-person me-2"></i>Öğrenci Cevapları</div>`;
+
+            const rightColumn = document.createElement('div');
+            rightColumn.className = 'column';
+            rightColumn.innerHTML = `<div class="column-header"><i class="bi bi-key me-2"></i>Cevap Anahtarı</div>`;
+
+            currentDersler.forEach((soruSayisi, ders) => {
+                const dersKey = normalizeSubject(ders);
+                leftColumn.innerHTML += createDersHTML(ders, dersKey, soruSayisi, 'ogrenci');
+                rightColumn.innerHTML += createDersHTML(ders, dersKey, soruSayisi, 'cevap');
+            });
+
+            container.appendChild(leftColumn);
+            container.appendChild(rightColumn);
+        }
+
+        function createDersHTML(ders, dersKey, soruSayisi, prefix) {
+            const isOgrenci = prefix === 'ogrenci';
+            let html = `
+            <div class="ders-section">
+                <div class="ders-title">
+                    <i class="bi bi-${isOgrenci ? 'book' : 'key'}"></i>${ders}
+                </div>
+                <div class="soru-grid">`;
+
+            for (let i = 1; i <= soruSayisi; i++) {
+                html += `
+                    <div class="soru-item">
+                        <span class="soru-no">${i}.</span>
+                        <input type="text" class="soru-input"
+                           name="${prefix}_${dersKey}_${i}"
+                           maxlength="1"
+                           pattern="[A-Ea-e]"
+                           title="A-E arası bir harf girin">
+                    </div>`;
+            }
+
+            html += `</div>`;
+            if (isOgrenci) {
+                html += `<textarea id="istatistik_${dersKey}" class="istatistik-textarea" readonly placeholder="📊 Optik form okuma istatistikleri..."></textarea>`;
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function formatStats(stats) {
+            if (!stats) return '';
+            return `İşaretlenen: ${stats.isaretlenen_adet || 0}\n` +
+                   `Ortalama Koyuluk: ${(stats.ort_koyuluk || 0).toFixed(2)}\n` +
+                   `Max Koyuluk: ${stats.max_koyuluk || 0}\n` +
+                   `Min Koyuluk: ${stats.min_koyuluk || 0}`;
+        }
+
+        // Yardımcı Fonksiyonlar
+        function showLoadingOverlay(message) {
+            document.getElementById('loadingText').textContent = message;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoadingOverlay() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function focusSubmitButton() {
+            document.querySelector('button[type="submit"]')?.focus();
+        }
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            container.appendChild(alertDiv);
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }, 5000);
+        }
+
+        document.addEventListener('input', function(e) {
+            if (e.target.matches('.soru-input')) {
+                e.target.value = e.target.value.toUpperCase();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.matches('.soru-input')) {
+                e.preventDefault();
+                const inputs = Array.from(document.querySelectorAll('.soru-input:not([readonly])'));
+                const currentIndex = inputs.indexOf(e.target);
+                if (currentIndex > -1 && currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                } else if (currentIndex === inputs.length - 1) {
+                    focusSubmitButton();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

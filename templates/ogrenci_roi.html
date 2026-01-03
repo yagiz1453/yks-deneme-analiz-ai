@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Cevapları ROI Seçimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+        body {
+            margin: 0;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        canvas {
+            border: 2px solid #fff;
+            display: block;
+            margin: 10px auto;
+            cursor: crosshair;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.3);
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 100vw;
+            height: auto;
+        }
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+            max-width: 350px;
+            z-index: 1000;
+            margin: 20px auto 10px auto;
+        }
+        .control-header {
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .form-select, .btn {
+            border-radius: 0.5rem;
+            border: 2px solid #e3e6f0;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #e53e3e);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-card {
+            background: linear-gradient(135deg, var(--info-color), #3182ce);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        .status-card .active-subject {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .status-card .status-message {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .result-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            z-index: 1000;
+            margin: 10px auto 20px auto;
+            max-width: 900px;
+        }
+        .result-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+        }
+        .result-header {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .result-content {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #e3e6f0;
+        }
+        .progress-indicator {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .progress-bar {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+        .footer-info {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            z-index: 1000;
+            margin: 10px auto 0 auto;
+            max-width: 350px;
+            text-align: center;
+        }
+        @media (max-width: 900px) {
+            .result-area {
+                max-width: 100vw;
+            }
+        }
+        @media (max-width: 768px) {
+            .control-panel {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin: 10px;
+                max-width: none;
+                padding: 1rem;
+            }
+            .result-area {
+                position: relative;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 10px;
+                grid-template-columns: 1fr;
+            }
+            canvas {
+                margin: 5px auto;
+                width: 98vw !important;
+                max-width: 98vw !important;
+                height: auto !important;
+            }
+            .footer-info {
+                margin: 10px auto 0 auto;
+            }
+        }
+        @media (max-width: 480px) {
+            .control-panel, .result-card, .footer-info {
+                padding: 0.5rem !important;
+                font-size: 0.95em;
+            }
+            .result-header {
+                font-size: 0.85rem;
+                padding: 0.5rem;
+            }
+            .status-card {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="control-panel">
+        <div class="control-header">
+            <i class="bi bi-crosshair me-2"></i>ROI Seçim Paneli
+        </div>
+        <!-- Açılır kapanır rehber başlangıcı -->
+        <div class="mb-3">
+            <button class="btn btn-info w-100 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#ogrenciRehber" aria-expanded="false" aria-controls="ogrenciRehber">
+                <i class="bi bi-question-circle me-1"></i> Kullanım Rehberi
+            </button>
+            <div class="collapse show" id="ogrenciRehber">
+                <div class="alert alert-info" style="font-size:0.97em;">
+                    1. <b>Yalnızca dikey (portre) formlar desteklenir.</b><br>
+                    2. <b>Sadece cevap kutucuklarını içeren alanı seçin</b> (soru numaraları vs. dahil edilmemeli).<br>
+                    3. Her satırda <b>en koyu kutucuk cevap olarak alınır</b>.<br>
+                    4. Koyu işaret yoksa cevap <b>boş sayılır</b>.<br>
+                    5. <b>✅ Net işaretleme yapın, hizalamaya dikkat edin.</b><br>
+                    <hr class="my-2">
+                    <span style="font-size:0.93em;">
+                        <b>Ders seçin, alanı seçin ve Gönder ile cevapları okuyun.</b><br>
+                        <b>Sonraki Ders</b> ile diğer derslere geçebilirsiniz.<br>
+                        Resmi taşımak için <b>Ctrl + Mouse</b> kullanabilirsiniz.
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- Açılır kapanır rehber bitişi -->
+        <div class="mb-3">
+            <label for="dersSelect" class="form-label fw-bold">Ders Seçimi:</label>
+            <select id="dersSelect" class="form-select"></select>
+        </div>
+        <div class="d-grid gap-2">
+            <button id="btn-gonder" class="btn btn-primary" disabled>
+                <i class="bi bi-send me-2"></i>Seçimi Gönder
+            </button>
+            <button id="btn-sonraki" class="btn btn-success" disabled>
+                <i class="bi bi-arrow-right me-2"></i>Sonraki Ders
+            </button>
+            <button onclick="temizle()" class="btn btn-danger">
+                <i class="bi bi-trash me-2"></i>Temizle
+            </button>
+        </div>
+        <div class="status-card">
+            <div class="active-subject">
+                <i class="bi bi-book me-2"></i>
+                <span id="aktifDers">Ders seçilmedi</span>
+            </div>
+            <div class="status-message" id="durumMesaji">Lütfen bir ders seçin</div>
+        </div>
+        <div class="progress-indicator">
+            <div class="progress">
+                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="progressText">0/0 Ders Tamamlandı</div>
+        </div>
+    </div>
+    <div class="result-area">
+        <div class="result-card">
+            <div class="result-header">
+                <i class="bi bi-list-check me-2"></i>Okunan Cevaplar
+            </div>
+            <div id="cevaplar" class="result-content">Cevaplar burada görünecek...</div>
+        </div>
+        <div class="result-card">
+            <div class="result-header">
+                <i class="bi bi-graph-up me-2"></i>İstatistiksel Analiz
+            </div>
+            <div id="istatistik" class="result-content">Analiz sonuçları burada görünecek...</div>
+        </div>
+    </div>
+    <div class="footer-info">
+        <i class="bi bi-info-circle me-1"></i>v3.0 - Modern ROI Seçim Aracı
+    </div>
+    <input type="file" id="ogrenciFileInput" accept="image/*">
+    <script>
+        function normalizeSubject(subject) {
+            return subject.normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\s+/g, '_')
+                .replace(/ç/g, 'c')
+                .replace(/ğ/g, 'g')
+                .replace(/ı/g, 'i')
+                .replace(/ş/g, 's')
+                .replace(/ö/g, 'o')
+                .replace(/ü/g, 'u')
+                .replace(/[^a-zA-Z0-9_]/g, '')
+                .toLowerCase();
+        }
+
+        // Default dersler (TYT için)
+        let dersler = ['Türkçe', 'Sosyal Bilimler', 'Temel Matematik', 'Fen Bilimleri'];
+        let examType = 'TYT'; // Default sınav tipi
+        let currentDersIndex = -1;
+        let completedSubjects = 0;
+        let processedDersler = new Set(); // İşlenen dersleri takip etmek için
+        let roi = null, dragging = false;
+        let startX, startY;
+        let offsetX = 0, offsetY = 0;
+        let draggingImage = false;
+        let dragStartX = 0, dragStartY = 0;
+        let allAnswers = {}, allStats = {};
+        let img = new Image();
+        let uploadedImagePath = null; // Sunucudan gelen gerçek dosya yolu
+
+        // Dinamik ders listesi desteği
+        const openerRef = window.opener && !window.opener.closed ? window.opener : null;
+
+        // Ana sayfadan gelen mesajları dinleme
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === "setDersler") {
+                dersler = event.data.dersler || dersler;
+                examType = event.data.examType || 'TYT';
+                // --- State'i tamamen resetle ---
+                currentDersIndex = -1;
+                completedSubjects = 0;
+                processedDersler = new Set();
+                allAnswers = {};
+                allStats = {};
+                fillDersSelect();
+                document.getElementById("dersSelect").value = ""; // Seçimi sıfırla
+                document.getElementById("aktifDers").innerText = "Ders seçilmedi";
+                temizle();
+                updateProgress();
+                updateButtons();
+                console.log(`Gelen dersler: ${dersler.join(', ')} | Exam Type: ${examType}`);
+            }
+        });
+
+        function fillDersSelect() {
+            const select = document.getElementById("dersSelect");
+            select.innerHTML = `<option value="">-- Ders Seçin --</option>`;
+            dersler.forEach(d => {
+                select.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+            select.value = ""; // Seçimi sıfırla
+        }
+
+        fillDersSelect();
+
+        // Görsel işlemleri
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const urlParams = new URLSearchParams(window.location.search);
+        const image_param = urlParams.get('image');
+        img.src = image_param || '';
+        img.onload = () => {
+            // Mobilde canvas boyutunu ekrana göre ayarla
+            let maxW = window.innerWidth * (window.innerWidth < 768 ? 0.98 : 0.7);
+            let maxH = window.innerHeight * (window.innerWidth < 768 ? 0.45 : 0.8);
+            const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            canvas.dataset.scale = scale.toString();
+            drawImage();
+        };
+
+        window.addEventListener('resize', () => {
+            if (!img.width || !img.height) return;
+            let maxW = window.innerWidth * (window.innerWidth < 768 ? 0.98 : 0.7);
+            let maxH = window.innerHeight * (window.innerWidth < 768 ? 0.45 : 0.8);
+            const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            canvas.dataset.scale = scale.toString();
+            drawImage();
+        });
+
+        function drawImage() {
+            const scale = parseFloat(canvas.dataset.scale || "1");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(offsetX, offsetY);
+            ctx.scale(scale, scale);
+            ctx.drawImage(img, 0, 0);
+            ctx.restore();
+            if (roi) {
+                ctx.save();
+                ctx.translate(offsetX, offsetY);
+                ctx.scale(scale, scale);
+                ctx.strokeStyle = "#1cc88a";
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(roi.x, roi.y, roi.w, roi.h);
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+        }
+
+        canvas.onmousedown = e => {
+            const rect = canvas.getBoundingClientRect();
+            const scale = parseFloat(canvas.dataset.scale || "1");
+            if (currentDersIndex < 0) {
+                showAlert("Önce bir ders seçin!", "warning");
+                return;
+            }
+            if (e.ctrlKey || e.metaKey) {
+                draggingImage = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+            } else {
+                dragging = true;
+                startX = (e.clientX - rect.left - offsetX) / scale;
+                startY = (e.clientY - rect.top - offsetY) / scale;
+            }
+        };
+
+        canvas.onmousemove = e => {
+            const rect = canvas.getBoundingClientRect();
+            const scale = parseFloat(canvas.dataset.scale || "1");
+            if (draggingImage) {
+                offsetX += e.clientX - dragStartX;
+                offsetY += e.clientY - dragStartY;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                drawImage();
+                return;
+            }
+            if (!dragging) return;
+            const x = (e.clientX - rect.left - offsetX) / scale;
+            const y = (e.clientY - rect.top - offsetY) / scale;
+            roi = {
+                x: Math.min(x, startX),
+                y: Math.min(y, startY),
+                w: Math.abs(x - startX),
+                h: Math.abs(y - startY)
+            };
+            drawImage();
+            updateButtons();
+        };
+
+        canvas.onmouseup = () => {
+            if (draggingImage) draggingImage = false;
+            if (dragging) {
+                dragging = false;
+                drawImage();
+                updateButtons();
+            }
+        };
+
+        document.getElementById("dersSelect").onchange = e => {
+            const selectedDers = e.target.value;
+            if (selectedDers) {
+                currentDersIndex = dersler.indexOf(selectedDers);
+                document.getElementById("aktifDers").innerText = selectedDers;
+
+                // Eğer bu ders daha önce işlendiyse, sonuçları göster
+                const normalizedDers = normalizeSubject(selectedDers);
+                if (allAnswers[normalizedDers]) {
+                    displayResults(normalizedDers);
+                } else {
+                    temizle();
+                }
+            } else {
+                currentDersIndex = -1;
+                document.getElementById("aktifDers").innerText = "Ders seçilmedi";
+                temizle();
+            }
+            updateButtons();
+        };
+
+        function updateButtons() {
+            const dersSecildi = currentDersIndex >= 0 && currentDersIndex < dersler.length;
+            const aktifDers = dersSecildi ? dersler[currentDersIndex] : null;
+
+            document.getElementById("btn-gonder").disabled = !dersSecildi || !roi;
+            document.getElementById("btn-sonraki").disabled = !dersSecildi;
+
+            if (dersSecildi && aktifDers) {
+                const normalizedDers = normalizeSubject(aktifDers);
+                const isProcessed = processedDersler.has(normalizedDers);
+
+                document.getElementById("durumMesaji").innerText = roi
+                    ? `Seçim yapıldı. Enter'a basın veya Gönder'e tıklayın.`
+                    : `${aktifDers} için bölge seçin.${isProcessed ? ' (Bu ders daha önce işlendi)' : ''}`;
+            } else {
+                document.getElementById("durumMesaji").innerText = "Lütfen bir ders seçin";
+            }
+        }
+
+        function updateProgress() {
+            const progress = (completedSubjects / dersler.length) * 100;
+            document.getElementById("progressBar").style.width = `${progress}%`;
+            document.getElementById("progressText").innerText = `${completedSubjects}/${dersler.length} Ders Tamamlandı`;
+        }
+
+        function temizle() {
+            roi = null;
+            drawImage();
+            document.getElementById("cevaplar").innerText = "Cevaplar burada görünecek...";
+            document.getElementById("istatistik").innerText = "Analiz sonuçları burada görünecek...";
+        }
+
+        function displayResults(normalizedDers) {
+            if (allAnswers[normalizedDers]) {
+                document.getElementById("cevaplar").innerText = Object.entries(allAnswers[normalizedDers]).map(
+                    ([no, cvp]) => `${no}. ${cvp}`
+                ).join('\n');
+
+                document.getElementById("istatistik").innerText = formatStats(allStats[normalizedDers]);
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 2000; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000); // 5 saniye göster
+        }
+
+        // Debug fonksiyonu - konsola detaylı bilgi yazdır
+        function debugInfo() {
+            console.log('=== DEBUG INFO ===');
+            console.log('Dersler:', dersler);
+            console.log('Current Ders Index:', currentDersIndex);
+            console.log('Current Ders:', dersler[currentDersIndex]);
+            console.log('Exam Type:', examType);
+            console.log('Image Param:', image_param);
+            console.log('ROI:', roi);
+            console.log('Processed Dersler:', Array.from(processedDersler));
+            console.log('All Answers:', allAnswers);
+            console.log('=================');
+        }
+
+        document.addEventListener("keydown", e => {
+            if (e.key === "Enter" && currentDersIndex >= 0 && roi) {
+                processROI(true);
+            }
+        });
+
+        document.getElementById("btn-gonder").onclick = () => processROI(true);
+        document.getElementById("btn-sonraki").onclick = () => {
+            // Sonraki işlenmemiş dersi bul
+            let nextIndex = -1;
+            for (let i = 0; i < dersler.length; i++) {
+                const normalizedDers = normalizeSubject(dersler[i]);
+                if (!processedDersler.has(normalizedDers)) {
+                    nextIndex = i;
+                    break;
+                }
+            }
+
+            if (nextIndex >= 0) {
+                currentDersIndex = nextIndex;
+                const nextDers = dersler[nextIndex];
+                document.getElementById("dersSelect").value = nextDers;
+                document.getElementById("aktifDers").innerText = nextDers;
+                temizle();
+                updateButtons();
+                showAlert(`Sıradaki ders: ${nextDers}`, 'info');
+            } else {
+                if (confirm("Tüm dersler tamamlandı. Verileri göndermek istiyor musunuz?")) {
+                    sendToParent(null);
+                }
+            }
+        };
+
+        function processROI(gonderilsinMi) {
+            if (currentDersIndex < 0 || currentDersIndex >= dersler.length || !roi) {
+                showAlert("Geçersiz ders seçimi veya ROI!", "danger");
+                return;
+            }
+
+            const aktifDers = dersler[currentDersIndex];
+            const normalizedDers = normalizeSubject(aktifDers);
+            const imagePath = image_param.replace(/^\/?static\//, '');
+
+            // Verileri kontrol et ve logla
+            console.log('Gönderilecek veriler:', {
+                image: imagePath,
+                ders: normalizedDers,
+                x: Math.round(roi.x),
+                y: Math.round(roi.y),
+                w: Math.round(roi.w),
+                h: Math.round(roi.h),
+                exam_type: examType
+            });
+
+            // ROI boyutlarını kontrol et
+            if (roi.w < 10 || roi.h < 10) {
+                showAlert("Seçilen alan çok küçük! Daha büyük bir alan seçin.", "warning");
+                return;
+            }
+
+            // Negatif değerleri kontrol et
+            if (roi.x < 0 || roi.y < 0 || roi.w <= 0 || roi.h <= 0) {
+                showAlert("Geçersiz alan koordinatları!", "danger");
+                return;
+            }
+
+            // Image path kontrolü
+            if (!imagePath || imagePath.trim() === '') {
+                showAlert("Görsel yolu bulunamadı!", "danger");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", imagePath);
+            formData.append("ders", normalizedDers);
+            formData.append("x", Math.round(Math.max(0, roi.x)));
+            formData.append("y", Math.round(Math.max(0, roi.y)));
+            formData.append("w", Math.round(Math.max(1, roi.w)));
+            formData.append("h", Math.round(Math.max(1, roi.h)));
+            formData.append("exam_type", examType || 'TYT');
+
+            document.getElementById("durumMesaji").innerText = `${aktifDers} işleniyor...`;
+            document.getElementById("btn-gonder").disabled = true;
+
+            fetch("/ogrenci-roi-veri", {
+                method: "POST",
+                body: formData
+            })
+            .then(async res => {
+                if (!res.ok) {
+                    // Response body'yi okuyup hata detaylarını al
+                    let errorText = '';
+                    try {
+                        const errorData = await res.json();
+                        errorText = errorData.error || errorData.message || `HTTP ${res.status}: ${res.statusText}`;
+                    } catch (e) {
+                        errorText = `HTTP ${res.status}: ${res.statusText}`;
+                    }
+                    throw new Error(errorText);
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log('Sunucudan gelen yanıt:', data);
+
+                if (data.error) throw new Error(data.error);
+                if (!data.answers || Object.keys(data.answers).length === 0) {
+                    throw new Error("Cevaplar okunamadı veya boş sonuç döndü");
+                }
+
+                // Verileri kaydet
+                allAnswers[normalizedDers] = data.answers;
+                allStats[normalizedDers] = data.stats || {};
+
+                // Bu dersin işlendiğini işaretle
+                if (!processedDersler.has(normalizedDers)) {
+                    processedDersler.add(normalizedDers);
+                    completedSubjects++;
+                    updateProgress();
+                }
+
+                // Sonuçları göster
+                displayResults(normalizedDers);
+                document.getElementById("durumMesaji").innerText = `${aktifDers} başarıyla okundu ✅`;
+
+                if (gonderilsinMi) {
+                    sendToParent(normalizedDers);
+                }
+
+                showAlert(`${aktifDers} başarıyla işlendi!`, 'success');
+            })
+            .catch(err => {
+                console.error("ProcessROI Error:", err);
+                document.getElementById("durumMesaji").innerText = `Hata: ${err.message}`;
+                showAlert(`Hata: ${err.message}`, 'danger');
+            })
+            .finally(() => {
+                document.getElementById("btn-gonder").disabled = false;
+            });
+        }
+
+
+        document.getElementById('ogrenciFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const MAX_WIDTH = 1600;
+            const MAX_HEIGHT = 1600;
+
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+              img.onload = function() {
+                let w = img.width, h = img.height;
+                let scale = Math.min(MAX_WIDTH / w, MAX_HEIGHT / h, 1);
+                if (scale < 1) {
+                  w = Math.round(w * scale);
+                  h = Math.round(h * scale);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                canvas.toBlob(function(blob) {
+                  const formData = new FormData();
+                  formData.append('file', blob, file.name.replace(/\.[^.]+$/, '.jpg'));
+                  fetch('/upload-optik', {
+                    method: 'POST',
+                    body: formData
+                  })
+                  .then(r => r.json())
+                  .then(data => {
+                    if (data.redirect_url) {
+                      uploadedImagePath = data.image_path || null;
+                      window.location.href = data.redirect_url;
+                    } else {
+                      alert('Yükleme hatası: ' + (data.error || 'Bilinmeyen hata'));
+                    }
+                  });
+                }, 'image/jpeg', 0.92);
+              };
+              img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          });
+
+        // Pencere kapandığında görseli silmek için
+        window.addEventListener('beforeunload', function() {
+            if (uploadedImagePath) {
+                fetch('/api/close-roi', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({image_path: uploadedImagePath})
+                });
+            }
+        });
+
+        // Tüm dersler tamamlandığında pencereyi kapatırken görseli sil
+        function sendToParent(ders) {
+            if (!openerRef) {
+                showAlert("Ana pencere kapalı veya ulaşılamıyor.", 'danger');
+                return;
+            }
+
+            const paket = {};
+
+            if (ders) {
+                if (allAnswers[ders]) {
+                    paket[ders] = {
+                        answers: formatAnswers(allAnswers[ders]),
+                        stats: allStats[ders] || {}
+                    };
+                }
+            } else {
+                dersler.forEach(d => {
+                    const normalized = normalizeSubject(d);
+                    if (allAnswers[normalized]) {
+                        paket[normalized] = {
+                            answers: formatAnswers(allAnswers[normalized]),
+                            stats: allStats[normalized] || {}
+                        };
+                    }
+                });
+            }
+
+            openerRef.postMessage({
+                type: "ocrResults",
+                results: paket,
+                isOptik: true,
+                examType: examType
+            }, "*");
+
+            if (!ders && processedDersler.size === dersler.length) {
+                // Görseli silmek için API çağrısı
+                if (uploadedImagePath) {
+                    fetch('/api/close-roi', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({image_path: uploadedImagePath})
+                    });
+                }
+                window.close();
+            }
+        }
+
+        function formatAnswers(obj) {
+            const temiz = {};
+            for (const [k, v] of Object.entries(obj || {})) {
+                const c = v?.toString().trim().toUpperCase();
+                if (/^[A-E]$/.test(c)) temiz[k] = c;
+            }
+            return temiz;
+        }
+
+        function formatStats(stats) {
+            if (!stats) return '';
+            return `İşaretlenen: ${stats.isaretlenen_adet || 0}\n` +
+                   `Ortalama Koyuluk: ${(stats.ort_koyuluk || 0).toFixed(2)}\n` +
+                   `Max Koyuluk: ${stats.max_koyuluk || 0}\n` +
+                   `Min Koyuluk: ${stats.min_koyuluk || 0}`;
+        }
+
+        // Sadece mobilde dokunmatik olayları aktif et
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        if (isMobile()) {
+            // Dokunmatik destek için yardımcı fonksiyonlar
+            function getTouchPos(canvas, touch) {
+                const rect = canvas.getBoundingClientRect();
+                const scale = parseFloat(canvas.dataset.scale || "1");
+                return {
+                    x: (touch.clientX - rect.left - offsetX) / scale,
+                    y: (touch.clientY - rect.top - offsetY) / scale
+                };
+            }
+
+            // Dokunmatik olaylar (mobil için)
+            canvas.addEventListener('touchstart', function(e) {
+                if (currentDersIndex < 0) {
+                    showAlert("Önce bir ders seçin!", "warning");
+                    return;
+                }
+                if (e.touches.length === 1) {
+                    dragging = true;
+                    const pos = getTouchPos(canvas, e.touches[0]);
+                    startX = pos.x;
+                    startY = pos.y;
+                    roi = { x: startX, y: startY, w: 0, h: 0 };
+                    drawImage();
+                    updateButtons();
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', function(e) {
+                if (!dragging || e.touches.length !== 1) return;
+                const pos = getTouchPos(canvas, e.touches[0]);
+                roi = {
+                    x: Math.min(pos.x, startX),
+                    y: Math.min(pos.y, startY),
+                    w: Math.abs(pos.x - startX),
+                    h: Math.abs(pos.y - startY)
+                };
+                drawImage();
+                updateButtons();
+                e.preventDefault();
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', function(e) {
+                if (dragging) {
+                    dragging = false;
+                    drawImage();
+                    updateButtons();
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        document.getElementById('ogrenciFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const MAX_WIDTH = 1600;
+            const MAX_HEIGHT = 1600;
+
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+              img.onload = function() {
+                let w = img.width, h = img.height;
+                let scale = Math.min(MAX_WIDTH / w, MAX_HEIGHT / h, 1);
+                if (scale < 1) {
+                  w = Math.round(w * scale);
+                  h = Math.round(h * scale);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                canvas.toBlob(function(blob) {
+                  const formData = new FormData();
+                  formData.append('file', blob, file.name.replace(/\.[^.]+$/, '.jpg'));
+                  fetch('/upload-optik', {
+                    method: 'POST',
+                    body: formData
+                  })
+                  .then(r => r.json())
+                  .then(data => {
+                    if (data.redirect_url) {
+                      uploadedImagePath = data.image_path || null;
+                      window.location.href = data.redirect_url;
+                    } else {
+                      alert('Yükleme hatası: ' + (data.error || 'Bilinmeyen hata'));
+                    }
+                  });
+                }, 'image/jpeg', 0.92);
+              };
+              img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          });
+
+        // Pencere kapandığında görseli silmek için
+        window.addEventListener('beforeunload', function() {
+            if (uploadedImagePath) {
+                fetch('/api/close-roi', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({image_path: uploadedImagePath})
+                });
+            }
+        });
+
+        // Tüm dersler tamamlandığında pencereyi kapatırken görseli sil
+        function sendToParent(ders) {
+            if (!openerRef) {
+                showAlert("Ana pencere kapalı veya ulaşılamıyor.", 'danger');
+                return;
+            }
+
+            const paket = {};
+
+            if (ders) {
+                if (allAnswers[ders]) {
+                    paket[ders] = {
+                        answers: formatAnswers(allAnswers[ders]),
+                        stats: allStats[ders] || {}
+                    };
+                }
+            } else {
+                dersler.forEach(d => {
+                    const normalized = normalizeSubject(d);
+                    if (allAnswers[normalized]) {
+                        paket[normalized] = {
+                            answers: formatAnswers(allAnswers[normalized]),
+                            stats: allStats[normalized] || {}
+                        };
+                    }
+                });
+            }
+
+            openerRef.postMessage({
+                type: "ocrResults",
+                results: paket,
+                isOptik: true,
+                examType: examType
+            }, "*");
+
+            if (!ders && processedDersler.size === dersler.length) {
+                // Görseli silmek için API çağrısı
+                if (uploadedImagePath) {
+                    fetch('/api/close-roi', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({image_path: uploadedImagePath})
+                    });
+                }
+                window.close();
+            }
+        }
+
+        function formatAnswers(obj) {
+            const temiz = {};
+            for (const [k, v] of Object.entries(obj || {})) {
+                const c = v?.toString().trim().toUpperCase();
+                if (/^[A-E]$/.test(c)) temiz[k] = c;
+            }
+            return temiz;
+        }
+
+        function formatStats(stats) {
+            if (!stats) return '';
+            return `İşaretlenen: ${stats.isaretlenen_adet || 0}\n` +
+                   `Ortalama Koyuluk: ${(stats.ort_koyuluk || 0).toFixed(2)}\n` +
+                   `Max Koyuluk: ${stats.max_koyuluk || 0}\n` +
+                   `Min Koyuluk: ${stats.min_koyuluk || 0}`;
+        }
+    </script>
+</body>
+</html>

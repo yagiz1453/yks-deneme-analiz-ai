@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İstatistikler - YKS Analiz Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+        }
+        .card {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+            border: none;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+        }
+        .progress {
+            height: 1.5rem;
+            border-radius: 0.35rem;
+        }
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+        .sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background: #fff;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+        }
+        .performance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 0.35rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .perf-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+        .perf-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .perf-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .trend-indicator {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .trend-up {
+            color: #1cc88a;
+        }
+        .trend-down {
+            color: #e74a3b;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 1rem 0;
+        }
+        .filter-section {
+            background: white;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+        }
+        .goal-card {
+            background: linear-gradient(135deg, #1cc88a 0%, #38a169 100%);
+            color: white;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+        }
+        .goal-progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            height: 1rem;
+            margin: 1rem 0;
+        }
+        .goal-progress-bar {
+            background: white;
+            height: 100%;
+            border-radius: 1rem;
+            transition: width 0.3s;
+        }
+        .comparison-table {
+            background: white;
+            border-radius: 0.35rem;
+            overflow: hidden;
+        }
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        .improvement-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .improvement-positive {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+        .improvement-negative {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+        .improvement-neutral {
+            background: #f4f6f6;
+            color: #7f8c8d;
+        }
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        .no-data i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Koç Sohbet Kutusu Stil */
+        #coachChatBtn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1051;
+            background: #4e73df;
+            color: #fff;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            font-size: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #coachChatBox {
+            position: fixed;
+            bottom: 100px;
+            right: 32px;
+            width: 350px;
+            max-width: 95vw;
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+            z-index: 1052;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #coachChatBox.active { display: flex; }
+        #coachChatHeader {
+            background: #4e73df;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #coachChatBody {
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            background: #f8f9fc;
+            font-size: 0.97rem;
+        }
+        #coachChatInputArea {
+            display: flex;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+        #coachChatInput {
+            flex: 1;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
+        }
+        #coachChatSendBtn {
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            padding: 0 1.2rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 0 0 1rem 0;
+        }
+        .coach-msg-user {
+            background: #e3e6f0;
+            color: #222;
+            border-radius: 1rem 1rem 0 1rem;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-end;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        .coach-msg-coach {
+            background: #4e73df;
+            color: #fff;
+            border-radius: 1rem 1rem 1rem 0;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+            max-width: 80%;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar border-end" id="sidebar">
+        <div class="sidebar-heading p-3">
+            <h4 class="text-center">YKS Analiz</h4>
+        </div>
+        <div class="list-group list-group-flush">
+            <a href="/panel" class="list-group-item list-group-item-action">
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+            </a>
+            <a href="/denemeler" class="list-group-item list-group-item-action">
+                <i class="bi bi-journal-text me-2"></i>Denemeler
+            </a>
+            <a href="/istatistikler" class="list-group-item list-group-item-action active">
+                <i class="bi bi-graph-up me-2"></i>İstatistikler
+            </a>
+            <a href="/ders-analizleri?tur=TYT" class="list-group-item list-group-item-action">
+                <i class="bi bi-book me-2"></i>TYT Ders Analizleri
+            </a>
+            <a href="/ders-analizleri?tur=AYT" class="list-group-item list-group-item-action">
+                <i class="bi bi-book me-2"></i>AYT Ders Analizleri
+            </a>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="container-fluid py-4">
+
+        <!-- Tür filtresi daima üstte -->
+        <div class="filter-tabs mb-4">
+            <ul class="nav nav-pills justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link {% if not tur %}active{% endif %}"
+                       href="{{ url_for('istatistikler') }}">
+                        <i class="bi bi-list-ul me-2"></i>Tümü
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if tur == 'TYT' %}active{% endif %}"
+                       href="{{ url_for('istatistikler') }}?tur=TYT">
+                        <i class="bi bi-bookmark me-2"></i>TYT
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if tur == 'AYT' %}active{% endif %}"
+                       href="{{ url_for('istatistikler') }}?tur=AYT">
+                        <i class="bi bi-bookmark-fill me-2"></i>AYT
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+
+
+        {% if not tur %}
+        <div class="card shadow mb-4">
+            <div class="card-body text-center">
+                <h4 class="mb-4">İstatistikleri görmek için lütfen bir tür seçin.</h4>
+                <a href="{{ url_for('istatistikler') }}?tur=TYT" class="btn btn-primary me-2">
+                    <i class="bi bi-bookmark me-1"></i>TYT İstatistikleri
+                </a>
+                <a href="{{ url_for('istatistikler') }}?tur=AYT" class="btn btn-primary">
+                    <i class="bi bi-bookmark-fill me-1"></i>AYT İstatistikleri
+                </a>
+            </div>
+        </div>
+        {% elif toplam_istatistik %}
+        <!-- Performans Özeti -->
+        <div class="performance-card">
+            <div class="text-center">
+                <h2 class="mb-3">Genel Performans Özeti</h2>
+                <p class="mb-0">Tüm denemelerinizin detaylı analizi</p>
+            </div>
+            <div class="performance-grid">
+                <div class="perf-item">
+                    <div class="perf-number">
+                        {{ "%.1f"|format(toplam_istatistik.net if toplam_istatistik else 0) }}
+                    </div>
+                    <div class="perf-label">Ortalama Net</div>
+                </div>
+                <div class="perf-item">
+                    {% set dogru = toplam_istatistik.dogru if toplam_istatistik else 0 %}
+                    {% set yanlis = toplam_istatistik.yanlis if toplam_istatistik else 0 %}
+                    {% set bos = toplam_istatistik.bos if toplam_istatistik else 0 %}
+                    {% set toplam_soru = dogru + yanlis + bos %}
+                    <div class="perf-number">
+                        {% if toplam_soru > 0 %}
+                            {{ "%.1f"|format(dogru / toplam_soru * 100) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </div>
+                    <div class="perf-label">Doğruluk Oranı</div>
+                </div>
+                <div class="perf-item">
+                    <div class="perf-number">{{ dogru }}</div>
+                    <div class="perf-label">Toplam Doğru</div>
+                </div>
+                <div class="perf-item">
+                    {% if en_yuksek %}
+                        <div class="perf-number">
+                            {{ "%.1f"|format(en_yuksek.net) }}
+                        </div>
+                    {% else %}
+                        <div class="perf-number">-</div>
+                    {% endif %}
+                    <div class="perf-label">En Yüksek Net</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafikler -->
+        <div class="row">
+            <!-- Net İlerleme Grafiği -->
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Net İlerleme Analizi</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if zaman_serisi and zaman_serisi|length > 0 %}
+                        <div class="chart-container">
+                            <canvas id="netIlerlemeChart"></canvas>
+                        </div>
+                        {% else %}
+                        <div class="no-data">
+                            <i class="bi bi-graph-up"></i>
+                            <h4>Henüz yeterli veri yok</h4>
+                            <p>Zaman serisi grafiği için daha fazla deneme yapmanız gerekiyor.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cevap Dağılımı -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Cevap Dağılımı</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="cevapDagilimChart"></canvas>
+                        </div>
+                        <div class="mt-3">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <h5 class="text-success">{{ dogru }}</h5>
+                                    <small class="text-muted">Doğru</small>
+                                </div>
+                                <div class="col-4">
+                                    <h5 class="text-danger">{{ yanlis }}</h5>
+                                    <small class="text-muted">Yanlış</small>
+                                </div>
+                                <div class="col-4">
+                                    <h5 class="text-secondary">{{ bos }}</h5>
+                                    <small class="text-muted">Boş</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ders Bazlı Performans -->
+        {% if ders_ortalamalari and ders_ortalamalari|length > 0 %}
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Ders Bazlı Performans</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="dersBazliChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detaylı Karşılaştırma Tablosu -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ders Bazlı Detaylı İstatistikler</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="comparison-table table">
+                        <thead>
+                        <tr>
+                            <th>Ders</th>
+                            <th>Ortalama Net</th>
+                            <th>Doğru</th>
+                            <th>Yanlış</th>
+                            <th>Boş</th>
+                            <th>Doğruluk Oranı</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ders in ders_ortalamalari %}
+                        <tr>
+                            <td><strong>{{ ders.ders }}</strong></td>
+                            <td>{{ "%.1f"|format(ders.net) }}</td>
+                            <td class="text-success">{{ ders.dogru }}</td>
+                            <td class="text-danger">{{ ders.yanlis }}</td>
+                            <td class="text-secondary">{{ ders.bos }}</td>
+                            <td>
+                                {% set ders_dogru = ders.get('dogru', 0) %}
+                                {% set ders_yanlis = ders.get('yanlis', 0) %}
+                                {% set ders_bos = ders.get('bos', 0) %}
+                                {% set ders_toplam = ders_dogru + ders_yanlis + ders_bos %}
+                                {% if ders_toplam > 0 %}
+                                    {{ "%.1f"|format(ders_dogru / ders_toplam * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Veri Yok Durumu -->
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="no-data">
+                    <i class="bi bi-graph-up"></i>
+                    <h4>Henüz istatistik verisi bulunmamaktadır</h4>
+                    <p>İstatistikleri görüntülemek için önce deneme eklemeniz gerekiyor.</p>
+                    <a href="/yeni-deneme" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>İlk Denemeyi Ekle
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Koç Sohbet Kutusu -->
+<button id="coachChatBtn" title="Koç ile Sohbet">
+    <i class="bi bi-chat-dots"></i>
+</button>
+<div id="coachChatBox">
+    <div id="coachChatHeader">
+        <span><i class="bi bi-person-heart"></i> Koç</span>
+        <div>
+            <button class="btn btn-sm btn-light me-2" onclick="clearCoachChat()" title="Sohbeti Temizle" style="border-radius:50%"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-sm btn-light" onclick="toggleCoachChat()" style="border-radius:50%"><i class="bi bi-x"></i></button>
+        </div>
+    </div>
+    <div id="coachChatBody">
+        <div class="text-center text-muted my-3" id="coachChatWelcome">
+            Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.
+        </div>
+    </div>
+    <div id="coachChatInputArea">
+        <input id="coachChatInput" type="text" placeholder="Mesajınızı yazın..." autocomplete="off" />
+        <button id="coachChatSendBtn"><i class="bi bi-send"></i></button>
+    </div>
+</div>
+
+<script>
+    // Grafik değişkenleri
+    let netIlerlemeChart, cevapDagilimChart, dersBazliChart;
+
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if toplam_istatistik %}
+        initializeCharts();
+        {% endif %}
+
+        // Sohbet geçmişini yükle
+        loadChatHistory();
+
+        // Sohbet kutusunun açık/kapalı durumunu kontrol et
+        if (localStorage.getItem('coachChatOpen') === '1') {
+            toggleCoachChat(true);
+        } else {
+            // Butonun içeriğini ilk yüklemede doğru ayarla
+            document.getElementById('coachChatBtn').innerHTML = '<i class="bi bi-chat-dots"></i>';
+        }
+    });
+
+    function initializeCharts() {
+        // Cevap Dağılımı Grafiği
+        const cevapCtx = document.getElementById('cevapDagilimChart').getContext('2d');
+        cevapDagilimChart = new Chart(cevapCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Doğru', 'Yanlış', 'Boş'],
+                datasets: [{
+                    data: [
+                        {{ dogru|default(0) }},
+                        {{ yanlis|default(0) }},
+                        {{ bos|default(0) }}
+                    ],
+                    backgroundColor: ['#1cc88a', '#e74a3b', '#858796'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+
+        {% if zaman_serisi and zaman_serisi|length > 0 %}
+        // Net İlerleme Grafiği
+        const netCtx = document.getElementById('netIlerlemeChart').getContext('2d');
+        netIlerlemeChart = new Chart(netCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for item in zaman_serisi %}
+                        '{{ item.tarih[:5] if item.tarih|length >= 5 else item.tarih }}'
+                        {% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'Net',
+                    data: [
+                        {% for item in zaman_serisi %}
+                            {{ item.net }}
+                            {% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#4e73df'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Net'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tarih'
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        {% if ders_ortalamalari and ders_ortalamalari|length > 0 %}
+        // Ders Bazlı Performans (ApexCharts)
+        const dersBazliOptions = {
+            series: [{
+                name: 'Net',
+                data: [
+                    {% for ders in ders_ortalamalari %}
+                        {{ ders.net }}
+                        {% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }, {
+                name: 'Doğru',
+                data: [
+                    {% for ders in ders_ortalamalari %}
+                        {% if ders.dogru is defined %}
+                            {{ ders.dogru }}
+                        {% elif ders['dogru'] is defined %}
+                            {{ ders['dogru'] }}
+                        {% else %}
+                            0
+                        {% endif %}
+                        {% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }],
+            chart: {
+                type: 'bar',
+                height: 350,
+                toolbar: {
+                    show: false
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '55%',
+                    endingShape: 'rounded'
+                },
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                show: true,
+                width: 2,
+                colors: ['transparent']
+            },
+            xaxis: {
+                categories: [
+                    {% for ders in ders_ortalamalari %}
+                        '{{ ders.ders }}'
+                        {% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ],
+            },
+            yaxis: {
+                title: {
+                    text: 'Değer'
+                }
+            },
+            fill: {
+                opacity: 1
+            },
+            colors: ['#4e73df', '#1cc88a'],
+            tooltip: {
+                y: {
+                    formatter: function (val, opts) {
+                        if (opts.seriesIndex === 0) {
+                            return val + " net"
+                        } else {
+                            return val + " doğru"
+                        }
+                    }
+                }
+            }
+        };
+
+        dersBazliChart = new ApexCharts(document.querySelector("#dersBazliChart"), dersBazliOptions);
+        dersBazliChart.render();
+        {% endif %}
+    }
+
+    function setGoal() {
+        const goal = prompt('Yeni hedef net değerinizi girin:', '160');
+        if (goal && !isNaN(goal)) {
+            alert(`Hedef ${goal} net olarak belirlendi!`);
+        }
+    }
+
+    function exportData() {
+        alert('Rapor indiriliyor...');
+    }
+
+    // Koç Sohbet Kutusu Script
+    function toggleCoachChat(forceState) {
+        const box = document.getElementById('coachChatBox');
+        const btn = document.getElementById('coachChatBtn');
+        let willBeActive;
+
+        if (typeof forceState === 'boolean') {
+            willBeActive = forceState;
+            if (willBeActive) {
+                box.classList.add('active');
+                btn.innerHTML = '<i class="bi bi-x"></i>';
+                setTimeout(() => {
+                    document.getElementById('coachChatInput').focus();
+                }, 200);
+            } else {
+                box.classList.remove('active');
+                btn.innerHTML = '<i class="bi bi-chat-dots"></i>';
+            }
+        } else {
+            box.classList.toggle('active');
+            willBeActive = box.classList.contains('active');
+            btn.innerHTML = willBeActive ? '<i class="bi bi-x"></i>' : '<i class="bi bi-chat-dots"></i>';
+            if (willBeActive) {
+                setTimeout(() => {
+                    document.getElementById('coachChatInput').focus();
+                }, 200);
+            }
+        }
+        localStorage.setItem('coachChatOpen', willBeActive ? '1' : '0');
+    }
+
+    document.getElementById('coachChatBtn').onclick = function() { toggleCoachChat(); };
+
+    // Enter ile gönderme
+    document.getElementById('coachChatInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            sendCoachMessageStream();
+        }
+    });
+    document.getElementById('coachChatSendBtn').onclick = sendCoachMessageStream;
+
+    let coachChatLoading = false;
+    const MAX_MESSAGE_LENGTH = 300;
+
+    function sendCoachMessageStream() {
+        if (coachChatLoading) return;
+
+        const input = document.getElementById('coachChatInput');
+        const msg = input.value.trim();
+
+        if (msg.length > MAX_MESSAGE_LENGTH) {
+            appendCoachMsg('coach', `Mesaj çok uzun (en fazla ${MAX_MESSAGE_LENGTH} karakter yazabilirsin).`);
+            return;
+        }
+        if (!msg) return;
+
+        // Kullanıcı mesajını ekle
+        appendCoachMsg('user', msg);
+        input.value = '';
+        coachChatLoading = true;
+
+        // Spinner ekle
+        const body = document.getElementById('coachChatBody');
+        const spinnerDiv = document.createElement('div');
+        spinnerDiv.className = 'coach-msg-coach';
+        spinnerDiv.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        body.appendChild(spinnerDiv);
+        body.scrollTop = body.scrollHeight;
+
+        // SSE ile streaming başlat
+        const evtSource = new EventSource(`/api/coach-chat-stream?message=${encodeURIComponent(msg)}`);
+
+        let coachMsg = '';
+        evtSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.delta) {
+                coachMsg += data.delta;
+                spinnerDiv.innerHTML = coachMsg;
+                body.scrollTop = body.scrollHeight;
+            }
+            if (data.done) {
+                coachChatLoading = false;
+                evtSource.close();
+            }
+            if (data.error) {
+                spinnerDiv.innerHTML = data.error;
+                coachChatLoading = false;
+                evtSource.close();
+            }
+        };
+
+        evtSource.onerror = function() {
+            spinnerDiv.innerHTML = 'Koç şu an yanıt veremiyor.';
+            coachChatLoading = false;
+            evtSource.close();
+        };
+
+        // Welcome mesajını gizle
+        const welcome = document.getElementById('coachChatWelcome');
+        if (welcome) welcome.style.display = 'none';
+    }
+
+    function appendCoachMsg(who, text) {
+        const body = document.getElementById('coachChatBody');
+        const div = document.createElement('div');
+        div.className = who === 'user' ? 'coach-msg-user' : 'coach-msg-coach';
+        div.innerHTML = text;
+        body.appendChild(div);
+        body.scrollTop = body.scrollHeight;
+
+        // Welcome mesajını gizle
+        const welcome = document.getElementById('coachChatWelcome');
+        if (welcome) welcome.style.display = 'none';
+    }
+
+    // Sohbet geçmişini yükle (sayfa yenilendiğinde)
+    function loadChatHistory() {
+        fetch('/api/coach-chat-history', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.history && data.history.length > 0) {
+                const chatBody = document.getElementById('coachChatBody');
+                // Mevcut içeriği temizle (welcome mesajı hariç)
+                chatBody.innerHTML = '';
+
+                // Geçmiş mesajları ekle
+                data.history.forEach(turn => {
+                    appendCoachMsg('user', turn.user);
+                    appendCoachMsg('coach', turn.coach);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Sohbet geçmişi yüklenirken hata:', error);
+        });
+    }
+
+    function clearCoachChat() {
+        if (!confirm("Tüm sohbet geçmişini silmek istediğine emin misin?")) return;
+
+        fetch('/api/coach-chat-clear', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const chatBody = document.getElementById('coachChatBody');
+                    chatBody.innerHTML = '<div class="text-center text-muted my-3" id="coachChatWelcome">Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Sohbet temizlenirken hata:', error);
+            });
+    }
+</script>
+</body>
+</html>

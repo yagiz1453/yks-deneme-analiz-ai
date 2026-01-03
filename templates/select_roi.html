@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bölge Seçimi ve OCR</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    rel="stylesheet"
+  >
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
+  <style>
+    :root {
+      --primary-color: #4e73df;
+      --secondary-color: #858796;
+      --success-color: #1cc88a;
+      --danger-color: #e74a3b;
+      --warning-color: #f6c23e;
+      --info-color: #36b9cc;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    canvas {
+      display: block;
+      cursor: crosshair;
+      background: #222;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
+      margin: 10px auto;
+      max-width: 100vw;
+      height: auto;
+    }
+
+    .toolbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      margin: 20px auto 10px auto;
+    }
+
+    .toolbar-header {
+      background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+      color: white;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .form-select,
+    .btn,
+    .form-control {
+      border-radius: 0.5rem;
+      border: 2px solid #e3e6f0;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .form-select:focus,
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color), #38a169);
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, var(--info-color), #3182ce);
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, var(--warning-color), #d69e2e);
+    }
+
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    .result-section {
+      margin-top: 1rem;
+    }
+
+    .result-label {
+      color: #2c3e50;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .result-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      padding: 0.75rem;
+      border: 2px solid #e3e6f0;
+      border-radius: 0.5rem;
+      resize: vertical;
+      background-color: #f8f9fa;
+      transition: all 0.3s;
+    }
+
+    .result-textarea:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+
+    .ocr-results {
+      height: 120px;
+    }
+
+    .parsed-answers {
+      height: 140px;
+      background: #e8f5e8;
+    }
+
+    #selectionBox {
+      position: absolute;
+      border: 3px dashed #1cc88a;
+      background-color: rgba(28, 200, 138, 0.1);
+      display: none;
+      pointer-events: none;
+      user-select: none;
+      border-radius: 0.25rem;
+    }
+
+    .status-indicator {
+      background: linear-gradient(135deg, var(--info-color), #3182ce);
+      color: white;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+      .toolbar {
+        max-width: 98vw;
+      }
+    }
+    @media (max-width: 768px) {
+      .toolbar {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin: 10px;
+        max-width: none;
+        padding: 1rem;
+      }
+      canvas {
+        margin: 5px auto;
+        width: 98vw !important;
+        max-width: 98vw !important;
+        height: auto !important;
+      }
+    }
+    @media (max-width: 480px) {
+      .toolbar, .result-section {
+        padding: 0.5rem !important;
+        font-size: 0.95em;
+      }
+      .toolbar-header {
+        font-size: 1em;
+        padding: 0.5rem;
+      }
+      .status-indicator {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="selectionBox"></div>
+  <div class="toolbar" id="toolbar">
+    <div class="toolbar-header">
+      <i class="bi bi-crosshair me-2"></i>OCR Bölge Seçimi
+    </div>
+    <!-- Açılır kapanır rehber başlangıcı -->
+    <div class="mb-3">
+      <button class="btn btn-info w-100 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#roiRehber" aria-expanded="false" aria-controls="roiRehber">
+        <i class="bi bi-question-circle me-1"></i> Cevap Anahtarı Çalışma Mantığı Rehberi
+      </button>
+      <div class="collapse show" id="roiRehber">
+        <div class="alert alert-info" style="font-size:0.97em;">
+          <b>Yer Seçimi:</b><br>
+          Kullanıcı, cevap anahtarındaki bir bölümü seçer.<br>
+          <b>OCR Çağrısı:</b><br>
+          Seçilen bölüm için Enter tuşu veya buton ile OCR işlemi başlatılır.<br>
+          OCR, seçilen metni dijital olarak okur ve kaydeder.<br>
+          <b>Parça Parça Okuma:</b><br>
+          Kullanıcı, cevabı bir ders için parça parça seçip OCR ile okuyabilir.<br>
+          Bu, özellikle tek seferde tüm dersi seçerken hata alınıyorsa zorunludur.<br>
+          <b>Cevapları Ayrıştırma:</b><br>
+          Tüm parçalar okunduktan sonra, kullanıcı <b>Cevapları Ayrıştır</b> komutunu kullanır.<br>
+          Bu işlem, alınan metinleri uygun ve standart cevap anahtarı formatına dönüştürür.<br>
+          <b>Ders Seçimi ve Gönderme:</b><br>
+          Kullanıcı, ayrıştırılmış cevapları ilgili dersle eşleştirir ve gönderir.<br>
+          Diğer dersler için aynı adımlar tekrar edilir.<br>
+          <b>Önemli Not:</b><br>
+          Eğer cevap anahtarında soru numarası üstte, cevaplar altta şeklinde ise, OCR doğru okuyamayabilir.<br>
+          Bu durumda, cevap anahtarını parça parça ve mantıklı bloklar halinde seçmek gereklidir.<br>
+          <span style="font-size:0.93em;">Resmi taşımak için <b>Ctrl + Mouse</b> kullanabilirsiniz.</span>
+        </div>
+      </div>
+    </div>
+    <!-- Açılır kapanır rehber bitişi -->
+    <div class="mb-3">
+      <label for="dersSelect" class="form-label fw-bold">Ders Seçiniz:</label>
+      <select id="dersSelect" class="form-select">
+        <option value="">-- Tüm Dersler --</option>
+      </select>
+    </div>
+    <div class="d-grid gap-2">
+      <button
+        id="btnOcr"
+        onclick="onaylaSecim()"
+        class="btn btn-primary"
+      >
+        <i class="bi bi-eye me-2"></i>OCR ile Al
+      </button>
+      <button
+        id="btnParse"
+        onclick="ayristir()"
+        class="btn btn-info"
+      >
+        <i class="bi bi-list-ul me-2"></i>Cevapları Ayrıştır
+      </button>
+      <button
+        id="btnSend"
+        onclick="gonder()"
+        class="btn btn-success"
+      >
+        <i class="bi bi-send me-2"></i>Gönder
+      </button>
+    </div>
+    <div class="result-section">
+      <div class="result-label">
+        <i class="bi bi-file-text"></i>OCR Sonuçları:
+      </div>
+      <textarea
+        id="ocrResults"
+        class="result-textarea ocr-results"
+        placeholder="OCR sonuçları burada..."
+        spellcheck="false"
+      ></textarea>
+      <button
+        class="btn btn-warning btn-sm"
+        onclick="document.getElementById('ocrResults').value = '';"
+      >
+        <i class="bi bi-trash me-1"></i>Temizle
+      </button>
+    </div>
+    <div class="result-section">
+      <div class="result-label">
+        <i class="bi bi-check2-square"></i>Ayrıştırılmış Cevaplar:
+      </div>
+      <textarea
+        id="parsedAnswers"
+        class="result-textarea parsed-answers"
+        placeholder="Ayrıştırılmış cevaplar burada..."
+        readonly
+      ></textarea>
+      <button
+        class="btn btn-warning btn-sm"
+        onclick="document.getElementById('parsedAnswers').value = '';"
+      >
+        <i class="bi bi-trash me-1"></i>Temizle
+      </button>
+    </div>
+    <div class="status-indicator">
+      <i class="bi bi-info-circle me-2"></i>
+      <span id="dragInfoText">Ctrl+Mouse ile resmi sürükleyebilirsiniz</span>
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+  <script>
+    function normalizeSubject(subject) {
+      return subject
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, '_')
+        .replace(/ç/g, 'c')
+        .replace(/ğ/g, 'g')
+        .replace(/ı/g, 'i')
+        .replace(/ş/g, 's')
+        .replace(/ö/g, 'o')
+        .replace(/ü/g, 'u')
+        .replace(/[^a-zA-Z0-9_]/g, '')
+        .toLowerCase();
+    }
+
+    // Default değerler
+    let tytDersler = [
+      'Türkçe',
+      'Sosyal Bilimler',
+      'Temel Matematik',
+      'Fen Bilimleri'
+    ];
+    let aytDersler = [
+      'Matematik',
+      'Fen Bilimleri',
+      'Türk Dili ve Edebiyatı – Sosyal Bilimler 1',
+      'Sosyal Bilimler 2'
+    ];
+    let dersler = tytDersler;
+    let examType = 'TYT'; // Default sınav tipi
+
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let img = new Image();
+    let selectionBox = document.getElementById('selectionBox');
+    let isDragging = false;
+    let selectionActive = false;
+    let startX,
+      startY,
+      endX,
+      endY;
+    let zoom = 1;
+    let offsetX = 0,
+      offsetY = 0;
+    let draggingImage = false;
+    let dragStartX = 0,
+      dragStartY = 0;
+    let parsedAnswers = {};
+
+    // Ana sayfadan gelen mesajları dinleme
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === "setDersler") {
+        dersler = event.data.dersler || dersler;
+        examType = event.data.examType || 'TYT';
+        fillDersSelect();
+        console.log(`Gelen dersler: ${dersler.join(', ')} | Exam Type: ${examType}`);
+      }
+    });
+
+    // Sayfa yüklendiğinde ana pencereye hazır olduğumuzu bildir
+    window.onload = () => {
+      if (window.opener) {
+        window.opener.postMessage({ type: "roiReady" }, "*");
+      }
+    };
+
+    function fillDersSelect() {
+      const select = document.getElementById('dersSelect');
+      select.innerHTML = `<option value="">-- Tüm Dersler --</option>`;
+      dersler.forEach(ders => {
+        select.innerHTML += `<option value="${ders}">${ders}</option>`;
+      });
+    }
+
+    // Responsive canvas boyutu
+    function resizeCanvas() {
+      let maxW = window.innerWidth * (window.innerWidth < 768 ? 0.98 : 1);
+      let maxH = window.innerHeight * (window.innerWidth < 768 ? 0.45 : 1);
+      if (img.width && img.height) {
+        const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+      } else {
+        canvas.width = window.innerWidth * 0.98;
+        canvas.height = window.innerHeight * 0.45;
+      }
+      draw();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const imageURL = urlParams.get('image');
+    const isCevapAnahtari = urlParams.get("is_cevap_anahtari") === "true";
+    const urlExamType = urlParams.get("exam_type");
+
+    if (urlExamType) {
+      examType = urlExamType;
+      dersler = examType.toUpperCase() === 'TYT' ? tytDersler : aytDersler;
+    }
+
+    if (!imageURL) {
+      alert("Görsel yüklenemedi!");
+    }
+    img.src = imageURL;
+    img.onload = () => {
+      resizeCanvas();
+      fillDersSelect();
+      const ders = urlParams.get('ders');
+      if (ders) {
+        const dersSelect = document.getElementById('dersSelect');
+        for (let i = 0; i < dersSelect.options.length; i++) {
+          if (dersSelect.options[i].value === ders) {
+            dersSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    };
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
+      ctx.scale(zoom, zoom);
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+    }
+
+    function updateSelectionBox() {
+      const x = Math.min(startX, endX);
+      const y = Math.min(startY, endY);
+      const w = Math.abs(endX - startX);
+      const h = Math.abs(endY - startY);
+      // offsetX ve offsetY'yi ekle, zoom ile çarp
+      const canvasRect = canvas.getBoundingClientRect();
+      selectionBox.style.left = (canvasRect.left + offsetX + (x * zoom)) + 'px';
+      selectionBox.style.top = (canvasRect.top + offsetY + (y * zoom)) + 'px';
+      selectionBox.style.width = (w * zoom) + 'px';
+      selectionBox.style.height = (h * zoom) + 'px';
+      selectionBox.style.display = 'block';
+    }
+
+    canvas.onmousedown = (e) => {
+      if (e.button === 2) return;
+      const rect = canvas.getBoundingClientRect();
+      if (e.ctrlKey || e.metaKey) {
+        draggingImage = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+      } else {
+        isDragging = true;
+        selectionActive = false;
+        startX = (e.clientX - rect.left - offsetX) / zoom;
+        startY = (e.clientY - rect.top - offsetY) / zoom;
+        endX = startX;
+        endY = startY;
+        updateSelectionBox();
+      }
+    };
+
+    canvas.onmousemove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      if (draggingImage) {
+        offsetX += e.clientX - dragStartX;
+        offsetY += e.clientY - dragStartY;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        draw();
+        updateSelectionBox();
+        return;
+      }
+      if (isDragging) {
+        endX = (e.clientX - rect.left - offsetX) / zoom;
+        endY = (e.clientY - rect.top - offsetY) / zoom;
+        updateSelectionBox();
+      }
+    };
+
+    canvas.onmouseup = () => {
+      if (isDragging) {
+        isDragging = false;
+        selectionActive = true;
+      }
+      draggingImage = false;
+    };
+
+    canvas.onwheel = (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      // Mouse pozisyonunu al
+      const mouseX = (e.clientX - rect.left - offsetX) / zoom;
+      const mouseY = (e.clientY - rect.top - offsetY) / zoom;
+      const prevZoom = zoom;
+      const delta = e.deltaY < 0 ? 1.1 : 0.9;
+      zoom *= delta;
+      // Zoom merkezini mouse konumunda tutmak için offset ayarla
+      offsetX -= (mouseX * zoom - mouseX * prevZoom);
+      offsetY -= (mouseY * zoom - mouseY * prevZoom);
+      draw();
+      updateSelectionBox();
+    };
+
+    function onaylaSecim() {
+      if (!selectionActive) {
+        alert("Lütfen önce bir bölge seçin!");
+        return;
+      }
+
+      const x = Math.min(startX, endX);
+      const y = Math.min(startY, endY);
+      const w = Math.abs(endX - startX);
+      const h = Math.abs(endY - startY);
+
+      if (w < 10 || h < 10) {
+        alert("Lütfen daha büyük bir bölge seçin!");
+        return;
+      }
+
+      const ders = document.getElementById('dersSelect').value;
+      const formData = new FormData();
+      formData.append('x', Math.round(x));
+      formData.append('y', Math.round(y));
+      formData.append('w', Math.round(w));
+      formData.append('h', Math.round(h));
+      formData.append('image_url', imageURL);
+      formData.append('exam_type', examType);
+
+      if (ders) {
+        formData.append('ders', ders);
+      }
+
+      fetch('/ocr/web-region', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert("OCR Hatası: " + data.error);
+          return;
+        }
+        let currentVal = document.getElementById('ocrResults').value;
+        document.getElementById('ocrResults').value = currentVal
+          ? currentVal + "\n\n" + data.text.trim()
+          : data.text.trim();
+      })
+      .catch(err => alert("Hata: " + err));
+    }
+
+    function ayristir() {
+      const text = document.getElementById('ocrResults').value;
+      if (!text.trim()) {
+        alert("Önce OCR işlemi yapmalısınız!");
+        return;
+      }
+
+      fetch('/parse-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          exam_type: examType
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert("Ayrıştırma Hatası: " + data.error);
+          return;
+        }
+
+        parsedAnswers = {};
+        for (const [no, ans] of Object.entries(data.answers)) {
+          parsedAnswers[no] = (ans || '').toString().trim().toUpperCase();
+        }
+
+        document.getElementById('parsedAnswers').value = Object.entries(parsedAnswers)
+          .map(([no, cvp]) => `${no}. ${cvp}`)
+          .join('\n');
+      })
+      .catch(err => alert("Hata: " + err));
+    }
+
+    function gonder() {
+      const dersRaw = document.getElementById('dersSelect').value.trim();
+      if (!parsedAnswers || Object.keys(parsedAnswers).length === 0) {
+        alert("⚠️ Önce ayrıştırma yapmalısınız!");
+        return;
+      }
+
+      if (!dersRaw) {
+        alert("⚠️ Lütfen bir ders seçiniz!");
+        return;
+      }
+
+      const ders = normalizeSubject(dersRaw);
+      const formattedData = {};
+      formattedData[ders] = {
+        answers: parsedAnswers,
+        stats: {}
+      };
+
+      if (!window.opener) {
+        alert("❌ Ana pencere bulunamadı!");
+        return;
+      }
+
+      window.opener.postMessage({
+        type: "ocrResults",
+        results: formattedData,
+        isOptik: !isCevapAnahtari,
+        examType: examType
+      }, "*");
+
+      alert("✅ Veriler başarıyla gönderildi!");
+
+      // İşlem tamamlandıktan sonra input temizliği
+      document.getElementById('parsedAnswers').value = '';
+      parsedAnswers = {};
+    }
+
+    window.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        onaylaSecim();
+      }
+    });
+
+    // Sadece mobilde dokunmatik olayları aktif et
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    if (isMobile()) {
+      document.getElementById('dragInfoText').textContent = "Resmi sürüklemek için iki parmağınızı kullanın";
+
+      // Dokunmatik destek için yardımcı fonksiyonlar
+      function getTouchPos(canvas, touch) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: ((touch.clientX - rect.left - offsetX) / zoom),
+          y: ((touch.clientY - rect.top - offsetY) / zoom)
+        };
+      }
+
+      // Dokunmatik olaylar (mobil için)
+      canvas.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+          mobileDraggingImage = true;
+          mobileDragStart = [
+            { x: e.touches[0].clientX, y: e.touches[0].clientY },
+            { x: e.touches[1].clientX, y: e.touches[1].clientY }
+          ];
+          e.preventDefault();
+        } else if (e.touches.length === 1) {
+          isDragging = true;
+          selectionActive = false;
+          const pos = getTouchPos(canvas, e.touches[0]);
+          startX = pos.x;
+          startY = pos.y;
+          endX = startX;
+          endY = startY;
+          updateSelectionBox();
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', function(e) {
+        if (mobileDraggingImage && e.touches.length === 2) {
+          // İki parmakla sürükleme
+          const prevAvg = {
+            x: (mobileDragStart[0].x + mobileDragStart[1].x) / 2,
+            y: (mobileDragStart[0].y + mobileDragStart[1].y) / 2
+          };
+          const currAvg = {
+            x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+            y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+          };
+          offsetX += currAvg.x - prevAvg.x;
+          offsetY += currAvg.y - prevAvg.y;
+          mobileDragStart = [
+            { x: e.touches[0].clientX, y: e.touches[0].clientY },
+            { x: e.touches[1].clientX, y: e.touches[1].clientY }
+          ];
+          draw();
+          updateSelectionBox();
+          e.preventDefault();
+        } else if (isDragging && e.touches.length === 1) {
+          const pos = getTouchPos(canvas, e.touches[0]);
+          endX = pos.x;
+          endY = pos.y;
+          updateSelectionBox();
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', function(e) {
+        if (mobileDraggingImage && e.touches.length < 2) {
+          mobileDraggingImage = false;
+          mobileDragStart = null;
+          e.preventDefault();
+        }
+        if (isDragging && e.touches.length === 0) {
+          isDragging = false;
+          selectionActive = true;
+          updateSelectionBox();
+          e.preventDefault();
+        }
+      }, { passive: false });
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Maksimum boyut (ör: 1600x1600)
+      const MAX_WIDTH = 1600;
+      const MAX_HEIGHT = 1600;
+
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        img.onload = function() {
+          let w = img.width, h = img.height;
+          let scale = Math.min(MAX_WIDTH / w, MAX_HEIGHT / h, 1);
+          if (scale < 1) {
+            w = Math.round(w * scale);
+            h = Math.round(h * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(function(blob) {
+            // Yeni blob'u FormData ile upload edin
+            const formData = new FormData();
+            formData.append('file', blob, file.name.replace(/\.[^.]+$/, '.jpg'));
+            fetch('/upload', {
+              method: 'POST',
+              body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+              if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+              } else {
+                alert('Yükleme hatası: ' + (data.error || 'Bilinmeyen hata'));
+              }
+            });
+          }, 'image/jpeg', 0.92); // kalite: 0.92
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>

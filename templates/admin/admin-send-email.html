@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin E-posta Gönder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+<div class="container mt-4" style="max-width:600px;">
+    <h3 class="mb-3">{{ target }} için E-posta Gönder</h3>
+    <a href="{{ url_for('admin.admin_panel') }}" class="btn btn-secondary mb-3">Admin Paneline Dön</a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" autocomplete="off">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="mb-3">
+            <label for="subject" class="form-label">Konu</label>
+            <input type="text" class="form-control" id="subject" name="subject" required value="{{ subject }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="template_name" class="form-label">E-posta Şablonu Seç</label>
+            <select class="form-select" id="template_name" name="template_name" required onchange="onTemplateChange()">
+                <option value="">Şablon Seçiniz</option>
+                {% for t in templates %}
+                    <option value="{{ t }}" {% if selected_template == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if variables %}
+        <div class="mb-3">
+            <label class="form-label">Şablondaki Değişkenleri Eşle</label>
+            {% for var in variables %}
+                <div class="input-group mb-2">
+                    <span class="input-group-text">{{ var }}</span>
+                    <select name="varmap_{{ var }}" class="form-select" required>
+                        <option value="name" {% if variable_map.get(var) == 'name' %}selected{% endif %}>İsim (name)</option>
+                        <option value="email" {% if variable_map.get(var) == 'email' %}selected{% endif %}>E-posta (email)</option>
+                        <option value="id" {% if variable_map.get(var) == 'id' %}selected{% endif %}>ID (id)</option>
+                        <option value="uuid" {% if variable_map.get(var) == 'uuid' %}selected{% endif %}>UUID (uuid)</option>
+                    </select>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="mb-3" id="template-content-box" style="display:none;">
+            <label class="form-label">Şablon İçeriği</label>
+            <pre id="template-content" class="form-control" style="background:#f8f9fa; height:auto; min-height:100px; border:1px solid #ddd; white-space:pre-wrap;"></pre>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">E-posta Gönder</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const templates = {{ templates|tojson }};
+    function showTemplateContent() {
+        const select = document.getElementById('template_name');
+        const contentBox = document.getElementById('template-content-box');
+        const contentPre = document.getElementById('template-content');
+        const selected = select.value;
+        if (!selected) {
+            contentBox.style.display = 'none';
+            contentPre.textContent = '';
+            return;
+        }
+        fetch('/supersecretadmin/email-templates/view/' + encodeURIComponent(selected))
+            .then(resp => resp.text())
+            .then(html => {
+                const match = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/);
+                if (match) {
+                    contentPre.textContent = match[1];
+                    contentBox.style.display = 'block';
+                } else {
+                    contentPre.textContent = '';
+                    contentBox.style.display = 'none';
+                }
+            });
+    }
+    function onTemplateChange() {
+        const select = document.getElementById('template_name');
+        window.location = "?template_name=" + encodeURIComponent(select.value);
+    }
+    document.getElementById('template_name').addEventListener('change', showTemplateContent);
+</script>
+</body>
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Denemeler - YKS Analiz Paneli</title>
+    
+    <!-- CSS Kütüphaneleri -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+        }
+
+        .card {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+        }
+
+        .btn {
+            border-radius: 0.35rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+            border: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #38a169);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #e53e3e);
+            border: none;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--info-color), #3182ce);
+            border: none;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 0.5em 0.75em;
+            border-radius: 0.35rem;
+        }
+
+        .table {
+            border-radius: 0.35rem;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .filter-tabs {
+            background: white;
+            border-radius: 0.35rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 0.35rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), #5a67d8);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 0.35rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .action-buttons .btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background: #fff;
+            box-shadow: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+        }
+
+        /* Koç Sohbet Kutusu Stil */
+        #coachChatBtn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1051;
+            background: #4e73df;
+            color: #fff;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            font-size: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #coachChatBox {
+            position: fixed;
+            bottom: 100px;
+            right: 32px;
+            width: 350px;
+            max-width: 95vw;
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+            z-index: 1052;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #coachChatBox.active { display: flex; }
+        #coachChatHeader {
+            background: #4e73df;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #coachChatBody {
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            background: #f8f9fc;
+            font-size: 0.97rem;
+        }
+        #coachChatInputArea {
+            display: flex;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+        #coachChatInput {
+            flex: 1;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
+        }
+        #coachChatSendBtn {
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            padding: 0 1.2rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 0 0 1rem 0;
+        }
+        .coach-msg-user {
+            background: #e3e6f0;
+            color: #222;
+            border-radius: 1rem 1rem 0 1rem;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-end;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        .coach-msg-coach {
+            background: #4e73df;
+            color: #fff;
+            border-radius: 1rem 1rem 1rem 0;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+            max-width: 80%;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar border-end" id="sidebar">
+            <div class="sidebar-heading p-3">
+                <h4 class="text-center">YKS Analiz</h4>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/panel" class="list-group-item list-group-item-action">
+                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                </a>
+                <a href="/denemeler" class="list-group-item list-group-item-action active">
+                    <i class="bi bi-journal-text me-2"></i>Denemeler
+                </a>
+                <a href="/istatistikler" class="list-group-item list-group-item-action">
+                    <i class="bi bi-graph-up me-2"></i>İstatistikler
+                </a>
+                <a href="/ders-analizleri?tur=TYT" class="list-group-item list-group-item-action">
+                    <i class="bi bi-book me-2"></i>TYT Ders Analizleri
+                </a>
+                <a href="/ders-analizleri?tur=AYT" class="list-group-item list-group-item-action">
+                    <i class="bi bi-book me-2"></i>AYT Ders Analizleri
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="container-fluid py-4">
+            <!-- Başlık -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="bi bi-journal-text me-2"></i>Denemeler
+                </h1>
+                <a href="{{ url_for('yeni_deneme') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Yeni Deneme Ekle
+                </a>
+            </div>
+
+            <!-- İstatistik Kartları -->
+            {% if denemeler %}
+            <div class="stats-card">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ denemeler|length }}</div>
+                        <div class="stat-label">Toplam Deneme</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ denemeler|selectattr('tur', 'equalto', 'TYT')|list|length }}</div>
+                        <div class="stat-label">TYT Denemesi</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ denemeler|selectattr('tur', 'equalto', 'AYT')|list|length }}</div>
+                        <div class="stat-label">AYT Denemesi</div>
+                    </div>
+                    <div class="stat-item">
+                        {% set son_tarih = denemeler|map(attribute='tarih')|list|sort|last %}
+                        <div class="stat-number">
+                            {% if son_tarih %}
+                                {% if son_tarih.strftime is defined %}
+                                    {{ son_tarih.strftime('%d.%m.%Y') }}
+                                {% else %}
+                                    {{ son_tarih[:10] if son_tarih|length > 10 else son_tarih }}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Son Deneme</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Filtre Sekmeler -->
+            <div class="filter-tabs">
+                <ul class="nav nav-pills justify-content-center">
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if not request.args.get('tur') else '' }}"
+                           href="{{ url_for('denemeler') }}">
+                            <i class="bi bi-list-ul me-2"></i>Tümü
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.args.get('tur') == 'TYT' else '' }}"
+                           href="{{ url_for('denemeler') }}?tur=TYT">
+                            <i class="bi bi-bookmark me-2"></i>TYT Denemeleri
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.args.get('tur') == 'AYT' else '' }}"
+                           href="{{ url_for('denemeler') }}?tur=AYT">
+                            <i class="bi bi-bookmark-fill me-2"></i>AYT Denemeleri
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Deneme Listesi -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-table me-2"></i>Deneme Listesi
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if denemeler %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="denemeTablosu">
+                            <thead>
+                                <tr>
+                                    <th><i class="bi bi-file-text me-1"></i>Deneme Adı</th>
+                                    <th><i class="bi bi-tag me-1"></i>Tür</th>
+                                    <th><i class="bi bi-calendar me-1"></i>Tarih</th>
+                                    <th><i class="bi bi-gear me-1"></i>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in denemeler %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ d.deneme_adi }}</div>
+                                        <small class="text-muted">ID: {{ d.uuid[:8] }}...</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-primary' if d.tur == 'TYT' else 'bg-warning text-dark' }}">
+                                            {{ d.tur }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">
+                                            {% if d.tarih %}
+                                                {% if d.tarih.strftime is defined %}
+                                                    {{ d.tarih.strftime('%d.%m.%Y') }}
+                                                {% else %}
+                                                    {{ d.tarih[:10] if d.tarih|length > 10 else d.tarih }}
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">
+                                            {% if d.tarih and d.tarih.strftime is defined %}
+                                                {{ d.tarih.strftime('%A') }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{{ url_for('deneme_detay', tur=d.tur.lower(), deneme_id=d.uuid) }}"
+                                               class="btn btn-info btn-sm" title="Detayları Görüntüle">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('deneme_duzenle', tur=d.tur.lower(), deneme_id=d.uuid) }}"
+                                               class="btn btn-primary btn-sm" title="Düzenle">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form action="{{ url_for('deneme_sil', tur=d.tur.lower(), deneme_id=d.uuid) }}"
+                                                  method="post" style="display: inline;"
+                                                  onsubmit="return confirm('Bu denemeyi silmek istediğinize emin misiniz?')">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Sil">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-journal-x"></i>
+                        <h4>Henüz deneme bulunmamaktadır</h4>
+                        <p class="text-muted">Yeni bir deneme ekleyerek başlayabilirsiniz.</p>
+                        <a href="{{ url_for('yeni_deneme') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>İlk Denemeyi Ekle
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Koç Sohbet Kutusu -->
+    <button id="coachChatBtn" title="Koç ile Sohbet">
+        <i class="bi bi-chat-dots"></i>
+    </button>
+    <div id="coachChatBox">
+        <div id="coachChatHeader">
+            <span><i class="bi bi-person-heart"></i> Koç</span>
+            <div>
+                <button class="btn btn-sm btn-light me-2" onclick="clearCoachChat()" title="Sohbeti Temizle" style="border-radius:50%"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-sm btn-light" onclick="toggleCoachChat()" style="border-radius:50%"><i class="bi bi-x"></i></button>
+            </div>
+        </div>
+        <div id="coachChatBody">
+            <div class="text-center text-muted my-3" id="coachChatWelcome">
+                Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.
+            </div>
+        </div>
+        <div id="coachChatInputArea">
+            <input id="coachChatInput" type="text" placeholder="Mesajınızı yazın..." autocomplete="off" />
+            <button id="coachChatSendBtn"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+
+    <script>
+    // Sayfa yüklendiğinde URL parametresine göre filtreyi ayarla
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const turFiltre = urlParams.get('tur');
+
+        if (turFiltre) {
+            filterDenemeler(turFiltre);
+        }
+
+        // Koç Sohbet Kutusu'nun açık/kapalı durumunu kontrol et
+        if (localStorage.getItem('coachChatOpen') === '1') {
+            toggleCoachChat(true);
+        }
+        loadChatHistory();
+    });
+
+    // Deneme filtreleme fonksiyonu
+    function filterDenemeler(tur) {
+        const rows = document.querySelectorAll('#denemeTablosu tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.cells.length < 4) return; // Boş satırları atla
+
+            const turCell = row.cells[1]; // Tür sütunu
+            const turBadge = turCell.querySelector('.badge');
+
+            if (!turBadge) return;
+
+            const rowTur = turBadge.textContent.trim();
+
+            if (!tur || rowTur === tur) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // İstatistik kartlarını güncelle
+        updateStats(tur);
+
+        // Eğer hiç sonuç yoksa mesaj göster
+        showNoResultsMessage(visibleCount === 0);
+    }
+
+    // İstatistikleri güncelle
+    function updateStats(tur) {
+        const rows = document.querySelectorAll('#denemeTablosu tbody tr');
+        let totalCount = 0;
+        let tytCount = 0;
+        let aytCount = 0;
+        let lastDate = null;
+
+        rows.forEach(row => {
+            if (row.cells.length < 4 || row.style.display === 'none') return;
+
+            const turBadge = row.cells[1].querySelector('.badge');
+            if (!turBadge) return;
+
+            const rowTur = turBadge.textContent.trim();
+            const dateText = row.cells[2].querySelector('.fw-bold').textContent.trim();
+
+            totalCount++;
+
+            if (rowTur === 'TYT') tytCount++;
+            if (rowTur === 'AYT') aytCount++;
+
+            // Son tarihi bul
+            if (dateText !== '-' && (!lastDate || dateText > lastDate)) {
+                lastDate = dateText;
+            }
+        });
+
+        // İstatistik kartlarını güncelle
+        const statsCard = document.querySelector('.stats-card');
+        if (statsCard) {
+            const statItems = statsCard.querySelectorAll('.stat-number');
+            if (statItems.length >= 4) {
+                statItems[0].textContent = totalCount;
+                statItems[1].textContent = tytCount;
+                statItems[2].textContent = aytCount;
+                statItems[3].textContent = lastDate || '-';
+            }
+        }
+    }
+
+    // Sonuç bulunamadı mesajını göster/gizle
+    function showNoResultsMessage(show) {
+        let noResultsRow = document.querySelector('#noResultsRow');
+
+        if (show && !noResultsRow) {
+            const tbody = document.querySelector('#denemeTablosu tbody');
+            noResultsRow = document.createElement('tr');
+            noResultsRow.id = 'noResultsRow';
+            noResultsRow.innerHTML = `
+                <td colspan="4" class="text-center py-4">
+                    <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-2 mb-0">Seçilen filtreye uygun deneme bulunamadı</p>
+                </td>
+            `;
+            tbody.appendChild(noResultsRow);
+        } else if (!show && noResultsRow) {
+            noResultsRow.remove();
+        }
+    }
+
+    // Filtre linklerine click event ekle
+    document.querySelectorAll('.nav-pills .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Aktif sınıfı güncelle
+            document.querySelectorAll('.nav-pills .nav-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+
+            // URL'yi güncelle
+            const url = new URL(this.href);
+            const tur = url.searchParams.get('tur');
+
+            // Filtreyi uygula
+            filterDenemeler(tur);
+
+            // Browser history'yi güncelle
+            const newUrl = tur ? `${window.location.pathname}?tur=${tur}` : window.location.pathname;
+            window.history.pushState({}, '', newUrl);
+        });
+    });
+
+    // Koç Sohbet Kutusu Script (istatistikler.html ile aynı)
+    function toggleCoachChat(forceState) {
+        const box = document.getElementById('coachChatBox');
+        const btn = document.getElementById('coachChatBtn');
+        let willBeActive;
+
+        if (typeof forceState === 'boolean') {
+            willBeActive = forceState;
+            if (willBeActive) {
+                box.classList.add('active');
+                btn.innerHTML = '<i class="bi bi-x"></i>';
+                setTimeout(() => {
+                    document.getElementById('coachChatInput').focus();
+                }, 200);
+            } else {
+                box.classList.remove('active');
+                btn.innerHTML = '<i class="bi bi-chat-dots"></i>';
+            }
+        } else {
+            box.classList.toggle('active');
+            willBeActive = box.classList.contains('active');
+            btn.innerHTML = willBeActive ? '<i class="bi bi-x"></i>' : '<i class="bi bi-chat-dots"></i>';
+            if (willBeActive) {
+                setTimeout(() => {
+                    document.getElementById('coachChatInput').focus();
+                }, 200);
+            }
+        }
+        localStorage.setItem('coachChatOpen', willBeActive ? '1' : '0');
+    }
+    document.getElementById('coachChatBtn').onclick = function() { toggleCoachChat(); };
+
+    document.getElementById('coachChatInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            sendCoachMessageStream();
+        }
+    });
+    document.getElementById('coachChatSendBtn').onclick = sendCoachMessageStream;
+
+    let coachChatLoading = false;
+    const MAX_MESSAGE_LENGTH = 300;
+
+    function sendCoachMessageStream() {
+        if (coachChatLoading) return;
+        const input = document.getElementById('coachChatInput');
+        const msg = input.value.trim();
+
+        if (msg.length > MAX_MESSAGE_LENGTH) {
+            appendCoachMsg('coach', `Mesaj çok uzun (en fazla ${MAX_MESSAGE_LENGTH} karakter yazabilirsin).`);
+            return;
+        }
+        if (!msg) return;
+        appendCoachMsg('user', msg);
+        input.value = '';
+        coachChatLoading = true;
+        // Spinner ekle
+        const body = document.getElementById('coachChatBody');
+        const spinnerDiv = document.createElement('div');
+        spinnerDiv.className = 'coach-msg-coach';
+        spinnerDiv.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        body.appendChild(spinnerDiv);
+        body.scrollTop = body.scrollHeight;
+
+        // SSE ile streaming başlat (GET)
+        const evtSource = new EventSource(`/api/coach-chat-stream?message=${encodeURIComponent(msg)}`);
+
+        let coachMsg = '';
+        evtSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.delta) {
+                coachMsg += data.delta;
+                spinnerDiv.innerHTML = coachMsg;
+                body.scrollTop = body.scrollHeight;
+            }
+            if (data.done) {
+                coachChatLoading = false;
+                evtSource.close();
+            }
+            if (data.error) {
+                spinnerDiv.innerHTML = data.error;
+                coachChatLoading = false;
+                evtSource.close();
+            }
+        };
+        evtSource.onerror = function() {
+            spinnerDiv.innerHTML = 'Koç şu an yanıt veremiyor.';
+            coachChatLoading = false;
+            evtSource.close();
+        };
+        // Welcome mesajını gizle
+        const welcome = document.getElementById('coachChatWelcome');
+        if (welcome) welcome.style.display = 'none';
+    }
+
+    function appendCoachMsg(who, text) {
+        const body = document.getElementById('coachChatBody');
+        const div = document.createElement('div');
+        div.className = who === 'user' ? 'coach-msg-user' : 'coach-msg-coach';
+        div.innerHTML = text;
+        body.appendChild(div);
+        body.scrollTop = body.scrollHeight;
+        // Welcome mesajını gizle
+        const welcome = document.getElementById('coachChatWelcome');
+        if (welcome) welcome.style.display = 'none';
+    }
+
+    // Sohbet geçmişini yükle (sayfa yenilendiğinde)
+    function loadChatHistory() {
+        fetch('/api/coach-chat-history', {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.history && data.history.length > 0) {
+                const chatBody = document.getElementById('coachChatBody');
+                chatBody.innerHTML = '';
+                data.history.forEach(turn => {
+                    appendCoachMsg('user', turn.user);
+                    appendCoachMsg('coach', turn.coach);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Sohbet geçmişi yüklenirken hata:', error);
+        });
+    }
+
+    function clearCoachChat() {
+        if (!confirm("Tüm sohbet geçmişini silmek istediğine emin misin?")) return;
+        fetch('/api/coach-chat-clear', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const chatBody = document.getElementById('coachChatBody');
+                    chatBody.innerHTML = '<div class="text-center text-muted my-3" id="coachChatWelcome">Merhaba! Ben senin kişisel YKS koçunum. Bana istediğini sorabilirsin.</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Sohbet temizlenirken hata:', error);
+            });
+    }
+    </script>
+</body>
+</html>

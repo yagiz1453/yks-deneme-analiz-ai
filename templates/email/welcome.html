@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hoş Geldiniz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fc;
+            padding: 40px;
+            color: #343a40;
+        }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 32px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        h2 {
+            color: #4e73df;
+        }
+        p {
+            line-height: 1.6;
+        }
+        .footer {
+            margin-top: 24px;
+            font-weight: bold;
+            color: #4e73df;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Merhaba {{ user_name }},</h2>
+        <p>Sisteme kayıt olduğunuz için teşekkür ederiz!</p>
+        <p>Herhangi bir sorunuz olursa bizimle iletişime geçmekten çekinmeyin.</p>
+        <p>İyi günler dileriz,</p>
+        <p class="footer">Destek Ekibi</p>
+    </div>
+</body>
+</html>

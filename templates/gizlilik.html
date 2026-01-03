@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gizlilik Politikası - YKS Deneme Analiz</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f8f9fc;
+      font-family: 'Nunito', sans-serif;
+      color: #343a40;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.15rem 0.35rem rgba(0,0,0,0.1);
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    h1, h2 {
+      color: #4e73df;
+    }
+    .back-link {
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Flash mesajları -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="alert-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <h1 class="mb-4">Gizlilik Politikası</h1>
+    <p><strong>Yürürlük Tarihi:</strong> 6 Temmuz 2025</p>
+
+    <p>
+      Bu gizlilik politikası, <strong>analiz.software</strong> alan adlı internet sitesi ve uygulama üzerinden sunulan hizmetleri kullanmanız halinde kişisel verilerinizin ne şekilde toplandığını, işlendiğini, saklandığını ve korunduğunu açıklar. Lütfen bu politikayı dikkatlice okuyunuz.
+    </p>
+
+    <h2 class="mt-4">1. Toplanan Veriler</h2>
+    <p>Hizmetimizi kullanmanız durumunda aşağıdaki veriler toplanabilir:</p>
+    <ul>
+      <li>Ad, e-posta adresi</li>
+      <li>Giriş tarih ve saatleri, IP adresi</li>
+      <li>Yüklenen deneme sınavı bilgileri (net sayıları, doğru/yanlış, puanlar vb.)</li>
+      <li>Sistem içi sohbet geçmişi (chatbot ile olan konuşmalar dahil)</li>
+    </ul>
+
+    <h2 class="mt-4">2. Verilerin Kullanım Amaçları</h2>
+    <ul>
+      <li>Deneme sonuçlarını analiz ederek kullanıcıya özel raporlar sunmak</li>
+      <li>Chatbot sistemi aracılığıyla kişiselleştirilmiş öneriler üretmek</li>
+      <li>Sistemin geliştirilmesi ve kullanıcı deneyiminin iyileştirilmesi</li>
+      <li>Güvenlik, kimlik doğrulama ve sahtekarlığın önlenmesi</li>
+    </ul>
+
+    <h2 class="mt-4">3. Üçüncü Taraflarla Paylaşım</h2>
+    <p>Verileriniz, aşağıdaki hizmet sağlayıcılarla yalnızca sınırlı ölçüde paylaşılabilir:</p>
+    <ul>
+      <li>OpenAI: Chatbot hizmeti için yalnızca analiz sonuçlarınızın özet verileri paylaşılır.</li>
+      <li>Sunucu Hizmeti: DigitalOcean gibi barındırma servisleri, verilerin depolandığı fiziksel altyapıyı sağlar.</li>
+    </ul>
+    <p>Hiçbir kişisel veri izinsiz olarak satılmaz, kiralanmaz veya ticari amaçla paylaşılmaz.</p>
+
+    <h2 class="mt-4">4. Verilerin Saklanma Süresi</h2>
+    <p>Hesabınız aktif olduğu sürece verileriniz sistemde saklanır. Hesap silme talebiniz üzerine tüm veriler 30 gün içinde silinir.</p>
+
+    <h2 class="mt-4">5. Kullanıcı Hakları (KVKK Kapsamında)</h2>
+    <p>6698 Sayılı Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca kullanıcılar:</p>
+    <ul>
+      <li>Kişisel verilerinin işlenip işlenmediğini öğrenme</li>
+      <li>İşlenmişse bilgi talep etme</li>
+      <li>Eksik ya da yanlış işlenmişse düzeltilmesini isteme</li>
+      <li>Verilerin silinmesini veya yok edilmesini isteme</li>
+      <li>İşlemenin kısıtlanmasını talep etme</li>
+      <li>İtiraz etme ve şikayette bulunma</li>
+    </ul>
+    <p>Bu haklarınızı kullanmak için bize <strong>analizsoftware@gmail.com</strong> adresinden ulaşabilirsiniz.</p>
+
+    <h2 class="mt-4">6. Güvenlik</h2>
+    <p>Verileriniz; SSL şifreleme, güvenlik duvarı ve parola korumalı erişim gibi teknik önlemlerle korunmaktadır.</p>
+
+    <h2 class="mt-4">7. Politika Güncellemeleri</h2>
+    <p>Bu politika zaman zaman güncellenebilir. G��ncellemeler bu sayfada yayınlanır.</p>
+
+    <p>İletişim için: <strong>analizsoftware@gmail.com</strong></p>
+
+    <div class="back-link text-center">
+      <a href="/" class="btn btn-primary">Ana Sayfaya Dön</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

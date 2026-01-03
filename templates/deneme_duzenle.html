@@ -235,6 +235,8 @@
         <div class="form-header">
             <h1><i class="bi bi-pencil-square me-2"></i>{{ deneme.deneme_adi }} Düzenle</h1>
             <form method="post" novalidate>
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+			
                 <div class="row justify-content-center">
                     <div class="col-md-3">
                         <div class="form-group">

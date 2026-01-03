@@ -1705,6 +1705,7 @@ def coach_chat_stream():
 
 @app.route('/api/coach-chat-clear', methods=['POST'])
 @login_required
+@csrf.exempt
 def coach_chat_clear():
     """
     Chat geçmişini temizler

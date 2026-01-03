@@ -209,6 +209,9 @@
       }
     }
   </style>
+  
+ <meta name="csrf-token" content="{{ csrf_token() }}">
+  
 </head>
 <body>
   <canvas id="canvas"></canvas>
@@ -316,6 +319,10 @@
     <input type="file" id="fileInput" accept="image/*">
   </div>
   <script>
+	function getCsrfToken() {
+		return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+	}
+	
     function normalizeSubject(subject) {
       return subject
         .normalize("NFD")
@@ -518,6 +525,10 @@
       updateSelectionBox();
     };
 
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+
     function onaylaSecim() {
       if (!selectionActive) {
         alert("Lütfen önce bir bölge seçin!");
@@ -547,8 +558,14 @@
         formData.append('ders', ders);
       }
 
+      // CSRF Token EKLENDİ
+      const csrfToken = getCsrfToken();
+
       fetch('/ocr/web-region', {
         method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
         body: formData
       })
       .then(res => res.json())
@@ -572,9 +589,15 @@
         return;
       }
 
+      // CSRF Token EKLENDİ
+      const csrfToken = getCsrfToken();
+
       fetch('/parse-answers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken 
+        },
         body: JSON.stringify({
           text,
           exam_type: examType
@@ -731,7 +754,6 @@
       const file = e.target.files[0];
       if (!file) return;
 
-      // Maksimum boyut (ör: 1600x1600)
       const MAX_WIDTH = 1600;
       const MAX_HEIGHT = 1600;
 
@@ -750,12 +772,19 @@
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
+          
           canvas.toBlob(function(blob) {
-            // Yeni blob'u FormData ile upload edin
             const formData = new FormData();
             formData.append('file', blob, file.name.replace(/\.[^.]+$/, '.jpg'));
+            
+            // CSRF Token EKLENDİ
+            const csrfToken = getCsrfToken();
+
             fetch('/upload', {
               method: 'POST',
+              headers: {
+                  'X-CSRFToken': csrfToken
+              },
               body: formData
             })
             .then(r => r.json())
@@ -766,7 +795,7 @@
                 alert('Yükleme hatası: ' + (data.error || 'Bilinmeyen hata'));
               }
             });
-          }, 'image/jpeg', 0.92); // kalite: 0.92
+          }, 'image/jpeg', 0.92);
         };
         img.src = ev.target.result;
       };

@@ -33,7 +33,7 @@ Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyin:
 
 1.  **Repoyu klonlayın:**
     ```bash
-    git clone [https://github.com/KULLANICI_ADIN/yks-deneme-analiz-ai.git](https://github.com/KULLANICI_ADIN/yks-deneme-analiz-ai.git)
+    git clone [https://github.com/yagiz1453/yks-deneme-analiz-ai.git](https://github.com/yagiz1453/yks-deneme-analiz-ai.git)
     cd yks-deneme-analiz-ai
     ```
 

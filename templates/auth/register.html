@@ -68,6 +68,8 @@
   <div class="register-container">
     <h2 class="mb-4 text-center text-primary">Kayıt Ol</h2>
     <form id="registerForm" method="POST" action="/register">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+	
       <div class="mb-3">
         <label for="name" class="form-label">Ad Soyad</label>
         <input type="text" class="form-control" id="name" name="name" placeholder="Adınızı ve soyadınızı girin" required />

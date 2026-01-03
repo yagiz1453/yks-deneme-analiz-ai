@@ -27,6 +27,19 @@ Bu proje, görüntü işleme algoritmaları ve modern web teknolojilerini birle�
 * **Yapay Zeka Entegrasyonu:** Groq API
 * **Frontend:** HTML5, CSS3, JavaScript (Jinja2 Templates)
 
+## ⚠️ Sistem Gereksinimleri (System Requirements)
+
+Bu proje OCR işlemleri için **Tesseract** ve PDF işlemleri için **Poppler** araçlarına ihtiyaç duyar. Python kütüphanelerini yüklemeden önce bunları işletim sisteminize kurmalısınız.
+
+### 🪟 Windows İçin
+1.  **Tesseract OCR:** İndirin ve kurun. Kurulum yolunu (örn: `C:\Program Files\Tesseract-OCR`) kopyalayıp `.env` dosyasına eklemeyi unutmayın.
+2.  **Poppler:** `pdf2image` için gereklidir. İndirin, zipten çıkarın ve `bin` klasörünü bilgisayarınızın "Path" değişkenlerine ekleyin.
+
+### 🐧 Linux (Ubuntu/Debian) İçin
+```bash
+sudo apt-get update
+sudo apt-get install tesseract-ocr poppler-utils libgl1
+
 ## ⚙️ Kurulum
 
 Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyin:

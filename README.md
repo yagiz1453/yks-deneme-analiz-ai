@@ -27,7 +27,7 @@ Bu proje, görüntü işleme algoritmaları ve modern web teknolojilerini birle�
 * **Yapay Zeka Entegrasyonu:** Groq API
 * **Frontend:** HTML5, CSS3, JavaScript (Jinja2 Templates)
 
-## ⚠️ Sistem Gereksinimleri (System Requirements)
+## ⚠️ Sistem Gereksinimleri
 
 Bu proje OCR işlemleri için **Tesseract** ve PDF işlemleri için **Poppler** araçlarına ihtiyaç duyar. Python kütüphanelerini yüklemeden önce bunları işletim sisteminize kurmalısınız.
 

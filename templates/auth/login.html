@@ -61,6 +61,8 @@
   <div class="login-container">
     <h2 class="mb-4 text-center text-primary">Giriş Yap</h2>
     <form id="loginForm" method="POST" action="/login">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+		
       <div class="mb-3">
         <label for="email" class="form-label">E-posta adresi</label>
         <input type="email" class="form-control" id="email" name="email" placeholder="example@mail.com" required />

@@ -39,7 +39,7 @@ Bu proje OCR işlemleri için **Tesseract** ve PDF işlemleri için **Poppler** 
 ```bash
 sudo apt-get update
 sudo apt-get install tesseract-ocr poppler-utils libgl1
-
+    ```
 ## ⚙️ Kurulum
 
 Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyin:

@@ -214,6 +214,9 @@
             }
         }
     </style>
+	
+<meta name="csrf-token" content="{{ csrf_token() }}">
+	
 </head>
 <body>
     <canvas id="canvas"></canvas>
@@ -291,6 +294,10 @@
     </div>
     <input type="file" id="ogrenciFileInput" accept="image/*">
     <script>
+		function getCsrfToken() {
+			return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+		}
+	
         function normalizeSubject(subject) {
             return subject.normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "")
@@ -628,8 +635,13 @@
             document.getElementById("durumMesaji").innerText = `${aktifDers} işleniyor...`;
             document.getElementById("btn-gonder").disabled = true;
 
+			const csrfToken = getCsrfToken();
+
             fetch("/ogrenci-roi-veri", {
                 method: "POST",
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
                 body: formData
             })
             .then(async res => {
@@ -780,11 +792,15 @@
             if (!ders && processedDersler.size === dersler.length) {
                 // Görseli silmek için API çağrısı
                 if (uploadedImagePath) {
+					const csrfToken = getCsrfToken();
                     fetch('/api/close-roi', {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({image_path: uploadedImagePath})
-                    });
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken // Header Ekle
+						},
+						body: JSON.stringify({image_path: uploadedImagePath})
+					});
                 }
                 window.close();
             }
@@ -890,8 +906,14 @@
                 canvas.toBlob(function(blob) {
                   const formData = new FormData();
                   formData.append('file', blob, file.name.replace(/\.[^.]+$/, '.jpg'));
+				  
+				  const csrfToken = getCsrfToken();
+				  
                   fetch('/upload-optik', {
                     method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken // HEADER EKLENDİ
+                    },
                     body: formData
                   })
                   .then(r => r.json())

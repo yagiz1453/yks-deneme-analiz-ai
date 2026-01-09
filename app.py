@@ -15,6 +15,7 @@ import smtplib
 import requests
 import threading
 import time
+from shutil import copyfile
 from datetime import datetime, timedelta
 from functools import wraps
 from email.mime.text import MIMEText
@@ -1321,181 +1322,309 @@ def get_db():
 # =============================================================================
 
 def init_koc_sohbet_table():
-    """Koç sohbetleri tablosunu oluşturur"""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-                   CREATE TABLE IF NOT EXISTS koc_sohbet
-                   (
-                       id
-                       INTEGER
-                       PRIMARY
-                       KEY
-                       AUTOINCREMENT,
-                       user_uuid
-                       TEXT
-                       NOT
-                       NULL,
-                       role
-                       TEXT
-                       NOT
-                       NULL,
-                       message
-                       TEXT
-                       NOT
-                       NULL,
-                       created_at
-                       DATETIME
-                       DEFAULT
-                       CURRENT_TIMESTAMP
-                   )
-                   """)
+        CREATE TABLE IF NOT EXISTS koc_sohbet
+        (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_uuid TEXT NOT NULL,
+            role TEXT NOT NULL,
+            message TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     conn.commit()
     conn.close()
-
 
 def init_koc_notlar_table():
-    """Koçun hatırlaması gereken notlar tablosunu oluşturur"""
+    """Koçun notlar tablosunu oluşturur (Kategori destekli)"""
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Tabloyu oluştur (yoksa)
     cursor.execute("""
-                   CREATE TABLE IF NOT EXISTS koc_notlar
-                   (
-                       id
-                       INTEGER
-                       PRIMARY
-                       KEY
-                       AUTOINCREMENT,
-                       user_uuid
-                       TEXT
-                       NOT
-                       NULL,
-                       note
-                       TEXT
-                       NOT
-                       NULL,
-                       created_at
-                       DATETIME
-                       DEFAULT
-                       CURRENT_TIMESTAMP
-                   )
-                   """)
+        CREATE TABLE IF NOT EXISTS koc_notlar
+        (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_uuid TEXT NOT NULL,
+            category TEXT DEFAULT 'genel',
+            note TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Mevcut tabloda category sütunu yoksa ekle (Migration)
+    cursor.execute("PRAGMA table_info(koc_notlar)")
+    columns = [column[1] for column in cursor.fetchall()]
+    if 'category' not in columns:
+        try:
+            cursor.execute("ALTER TABLE koc_notlar ADD COLUMN category TEXT DEFAULT 'genel'")
+        except:
+            pass
+            
     conn.commit()
     conn.close()
 
+def init_koc_kalici_hafiza_table():
+    """Koçun kalıcı hafıza tablosunu oluşturur (özel kalıplar için)"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS koc_kalici_hafiza
+        (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_uuid TEXT NOT NULL,
+            kalip_tipi TEXT NOT NULL,
+            deger TEXT NOT NULL,
+            son_guncelleme DATETIME DEFAULT CURRENT_TIMESTAMP,
+            ogrenim_tarihi DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_uuid, kalip_tipi)
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def init_koc_gelismis_notlar_table():
+    """Koçun gelişmiş notlar tablosunu oluşturur"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS koc_gelismis_notlar
+        (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_uuid TEXT NOT NULL,
+            kategori TEXT NOT NULL,
+            alt_kategori TEXT,
+            baslik TEXT,
+            icerik TEXT NOT NULL,
+            onem_seviyesi INTEGER DEFAULT 5,
+            son_kullanim DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
 
 # Tabloları başlat
 init_koc_sohbet_table()
 init_koc_notlar_table()
-
+init_koc_kalici_hafiza_table()
+init_koc_gelismis_notlar_table()
 
 # =============================================================================
 # CHAT FONKSİYONLARI
 # =============================================================================
 
 def get_chat_history(user_uuid, limit=10):
-    """
-    Kullanıcının chat geçmişini getirir
-
-    Args:
-        user_uuid (str): Kullanıcı UUID'si
-        limit (int): Getirilecek mesaj sayısı
-
-    Returns:
-        list: Chat ge��mişi (role, content formatında)
-    """
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("""
-                   SELECT role, message
-                   FROM koc_sohbet
-                   WHERE user_uuid = ?
-                   ORDER BY created_at DESC, id DESC LIMIT ?
-                   """, (user_uuid, limit * 2))
-
+    cursor.execute("SELECT role, message FROM koc_sohbet WHERE user_uuid = ? ORDER BY created_at DESC, id DESC LIMIT ?", (user_uuid, limit * 2))
     rows = cursor.fetchall()
     conn.close()
-
     return [{"role": row["role"], "content": row["message"]} for row in reversed(rows)]
 
-
 def add_chat_message(user_uuid, role, message):
-    """
-    Chat mesajını veritabanına kaydet
-
-    Args:
-        user_uuid (str): Kullanıcı UUID'si
-        role (str): Mesaj rolü ('user' veya 'assistant')
-        message (str): Mesaj içeriği
-    """
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO koc_sohbet (user_uuid, role, message) VALUES (?, ?, ?)",
-        (user_uuid, role, message)
-    )
+    cursor.execute("INSERT INTO koc_sohbet (user_uuid, role, message) VALUES (?, ?, ?)", (user_uuid, role, message))
     conn.commit()
     conn.close()
 
+def clean_old_chat_history(user_uuid, keep_count=50):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM koc_sohbet WHERE user_uuid = ? AND id NOT IN (SELECT id FROM koc_sohbet WHERE user_uuid = ? ORDER BY created_at DESC LIMIT ?)", (user_uuid, user_uuid, keep_count))
+    conn.commit()
+    conn.close()
 
 # =============================================================================
 # NOT FONKSİYONLARI
 # =============================================================================
 
-def add_koc_note(user_uuid, note):
-    """
-    Koç notunu kaydet
-
-    Args:
-        user_uuid (str): Kullanıcı UUID'si
-        note (str): Kaydedilecek not
-    """
+def add_koc_note(user_uuid, note, category='genel'):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO koc_notlar (user_uuid, note) VALUES (?, ?)",
-        (user_uuid, note)
-    )
+    cursor.execute("INSERT INTO koc_notlar (user_uuid, note, category) VALUES (?, ?, ?)", (user_uuid, note, category))
     conn.commit()
     conn.close()
 
+def get_koc_notes(user_uuid, limit=15):
+    conn = get_db()
+    cursor = conn.cursor()
+    # Kategori sütunu kontrolü
+    try:
+        cursor.execute("SELECT category, note FROM koc_notlar WHERE user_uuid = ? ORDER BY created_at DESC LIMIT ?", (user_uuid, limit))
+        notes = cursor.fetchall()
+        grouped = {}
+        for row in notes:
+            cat = row['category'] or 'genel'
+            if cat not in grouped: grouped[cat] = []
+            grouped[cat].append(row['note'])
+        conn.close()
+        return grouped
+    except:
+        # Eski yapı fallback
+        conn.close()
+        return {}
 
-def get_koc_notes(user_uuid, limit=5):
-    """
-    Kullanıcının koç notlarını getir
-
-    Args:
-        user_uuid (str): Kullanıcı UUID'si
-        limit (int): Getirilecek not sayısı
-
-    Returns:
-        list: Kullanıcının notları
-    """
+def set_kalici_hafiza(user_uuid, kalip_tipi, deger):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-                   SELECT note
-                   FROM koc_notlar
-                   WHERE user_uuid = ?
-                   ORDER BY created_at DESC LIMIT ?
-                   """, (user_uuid, limit))
-
-    notes = [row["note"] for row in cursor.fetchall()]
+        INSERT OR REPLACE INTO koc_kalici_hafiza (user_uuid, kalip_tipi, deger, son_guncelleme, ogrenim_tarihi)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP, COALESCE((SELECT ogrenim_tarihi FROM koc_kalici_hafiza WHERE user_uuid = ? AND kalip_tipi = ?), CURRENT_TIMESTAMP))
+    """, (user_uuid, kalip_tipi, deger, user_uuid, kalip_tipi))
+    conn.commit()
     conn.close()
-    return notes
 
+def get_kalici_hafiza(user_uuid):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT kalip_tipi, deger FROM koc_kalici_hafiza WHERE user_uuid = ?", (user_uuid,))
+    rows = cursor.fetchall()
+    conn.close()
+    return {row['kalip_tipi']: dict(row) for row in rows}
 
-def extract_and_save_notes(text, user_uuid):
-    """
-    AI yanıtından notları ayıkla ve kaydet
+def add_gelismis_not(user_uuid, kategori, icerik, alt_kategori=None, baslik=None, onem_seviyesi=5):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO koc_gelismis_notlar (user_uuid, kategori, alt_kategori, baslik, icerik, onem_seviyesi) VALUES (?, ?, ?, ?, ?, ?)", 
+                   (user_uuid, kategori, alt_kategori, baslik, icerik, onem_seviyesi))
+    conn.commit()
+    conn.close()
 
-    Args:
-        text (str): AI yanıtı
-        user_uuid (str): Kullanıcı UUID'si
-    """
-    notlar = re.findall(r"Koç, bu notu hatırla: (.+?)(?:\n|$)", text)
-    for note in notlar:
-        add_koc_note(user_uuid, note.strip())
+def get_gelismis_notlar(user_uuid, limit=15):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM koc_gelismis_notlar WHERE user_uuid = ? ORDER BY onem_seviyesi DESC, created_at DESC LIMIT ?", (user_uuid, limit))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+# --- Analiz ve Prompt Mantığı ---
+
+def analyze_user_message(message):
+    message = message.lower().strip()
+    analysis = {
+        'emotion': 'nötr', 'intent': 'genel', 'topics': [], 'urgency': 'normal',
+        'needs_motivation': False, 'time_reference': None, 'goals_mentioned': False
+    }
+    
+    # Basit Duygu ve Niyet Analizi
+    if any(w in message for w in ['mutlu', 'başardım', 'güzel']): analysis['emotion'] = 'pozitif'
+    elif any(w in message for w in ['üzgün', 'yapamadım', 'kötü', 'stres']): analysis['emotion'] = 'negatif'
+    
+    if any(w in message for w in ['motivasyon', 'bıktım', 'yoruldum']): analysis['needs_motivation'] = True
+    if any(w in message for w in ['hedef', 'üniversite', 'bölüm', 'istiyorum']): analysis['goals_mentioned'] = True
+    
+    subjects = {'matematik': ['mat'], 'türkçe': ['türkçe', 'paragraf'], 'fen': ['fizik','kimya'], 'sosyal': ['tarih','coğrafya']}
+    for top, keys in subjects.items():
+        if any(k in message for k in keys): analysis['topics'].append(top)
+
+    return analysis
+
+def extract_kaliplar_from_message(user_input, user_uuid):
+    # Regex ile hedef yakalama (Basitleştirilmiş versiyon)
+    patterns = {
+        'tyt_hedef': r'tyt.*?(\d+)\s*net',
+        'hedef_universite': r'(itü|odtü|boğaziçi|hacettepe|bilkent|koç|sabancı).*?üniversite',
+        'hedef_bolum': r'(tıp|hukuk|mühendislik|diş|mimarlık|psikoloji)',
+        'uyku_saati': r'(\d+)\s*saat\s*uyku'
+    }
+    for ktype, pat in patterns.items():
+        match = re.search(pat, user_input.lower())
+        if match:
+            val = match.group(1) if match.groups() else match.group(0)
+            set_kalici_hafiza(user_uuid, ktype, val.upper())
+
+def get_enhanced_notes_summary(user_uuid):
+    grouped = get_koc_notes(user_uuid)
+    if not grouped: return "Özel not yok."
+    text = []
+    for cat, notes in grouped.items():
+        text.append(f"{cat.upper()}: " + ", ".join(notes[:3]))
+    return "\n".join(text)
+
+def get_enhanced_memory_summary(user_uuid):
+    mem = get_kalici_hafiza(user_uuid)
+    parts = []
+    if mem:
+        parts.append("🧠 KALICI HAFIZA:")
+        for k, v in mem.items(): parts.append(f"• {k}: {v['deger']}")
+    
+    g_notlar = get_gelismis_notlar(user_uuid, 5)
+    if g_notlar:
+        parts.append("\n📝 ÖNEMLİ NOTLAR:")
+        for n in g_notlar: parts.append(f"• {n['kategori']}: {n['icerik']}")
+        
+    return "\n".join(parts) if parts else "Hafıza boş."
+
+def get_comprehensive_performance_summary(user_uuid):
+    # Bu fonksiyon modül içindeki fonksiyonları kullanarak detaylı özet çıkarır
+    # Basitçe son denemeyi ve ortalamayı manuel SQL ile çekelim
+    try:
+        # Burada app.py içindeki helper'ı kullanmak yerine direkt DB'den çekiyoruz
+        # Çünkü modules importlarında sorun yaşamamak için.
+        conn = get_db()
+        cur = conn.cursor()
+        # Son TYT
+        cur.execute("SELECT deneme_adi, tarih FROM genel_bilgiler_tyt WHERE ogrenci_uuid=? ORDER BY tarih DESC LIMIT 1", (user_uuid,))
+        tyt = cur.fetchone()
+        tyt_msg = f"Son TYT: {tyt['deneme_adi']} ({tyt['tarih']})" if tyt else "TYT verisi yok"
+        conn.close()
+        return tyt_msg
+    except:
+        return "Performans verisine erişilemedi."
+
+def get_enhanced_context_aware_prompt(user_uuid, analysis, perf_summary, notes_summary):
+    memory = get_enhanced_memory_summary(user_uuid)
+    
+    base_prompt = f"""Sen uzman bir YKS koçusun.
+    
+📊 KULLANICI DURUMU:
+- Duygu: {analysis['emotion']}
+- Motivasyon İhtiyacı: {'Evet' if analysis['needs_motivation'] else 'Hayır'}
+- Konu: {', '.join(analysis['topics'])}
+
+🧠 HAFIZAN (Bunu kullan):
+{memory}
+
+📝 ESKİ NOTLARIN:
+{notes_summary}
+
+📈 PERFORMANS:
+{perf_summary}
+
+KURALLAR:
+1. Kullanıcıyla samimi, motive edici konuş.
+2. Hafızandaki bilgileri (hedef üniversite, zayıf ders vb.) konuşmanda kullan.
+3. Eğer kullanıcı önemli bir hedef, alışkanlık veya bilgi verirse; cevabının başına şunu gizlice ekle (kullanıcı görmeyecek):
+   "Koç, bu notu hatırla: <bilgi>" veya "Koç, bu hedefi hatırla: <hedef>"
+4. Asla 'yapay zeka' olduğunu vurgulama, gerçek bir koç gibi davran.
+5. TYT/AYT taktikleri verirken spesifik ol.
+
+Şimdi kullanıcının son mesajına cevap ver."""
+    return base_prompt
+
+def filter_note_lines(text_chunk):
+    lines = text_chunk.split('\n')
+    filtered = []
+    for line in lines:
+        if "Koç, bu" in line and "hatırla:" in line: continue
+        filtered.append(line)
+    return '\n'.join(filtered)
+
+def enhanced_smart_note_extraction(text, user_uuid, user_input):
+    # 1. AI yanıtından notları çek
+    notes = re.findall(r"Koç, bu (?:notu|hedefi|alışkanlığı) hatırla: (.+?)(?:\n|$)", text)
+    for n in notes:
+        add_koc_note(user_uuid, n.strip(), 'genel')
+        add_gelismis_not(user_uuid, 'otomatik', n.strip(), onem_seviyesi=7)
+    
+    # 2. Kullanıcı mesajından kalıp çıkar
+    extract_kaliplar_from_message(user_input, user_uuid)
 
 
 # =============================================================================
@@ -1643,24 +1772,34 @@ def get_coach_chat_history():
 @app.route('/api/coach-chat-stream', methods=['GET', 'POST'])
 @login_required
 def coach_chat_stream():
-    # ... (Önceki kodların aynı kalabilir: mesaj alma, uzunluk kontrolü vb.) ...
-    
+    # Mesajı al
     if request.method == 'POST':
-        user_input = request.json.get('message', '').strip()
+        if request.is_json:
+            data = request.get_json()
+            user_input = (data.get('message', '') if data else '').strip()
+        else:
+            user_input = (request.form.get('message', '')).strip()
     else:
-        user_input = request.args.get('message', '').strip()
-        
+        user_input = (request.args.get('message', '')).strip()
+
     user_uuid = g.user['uuid']
     
-    # Mesajı kaydet
+    if not user_input:
+        return jsonify({'error': 'Mesaj boş'}), 400
+
+    # Kullanıcı mesajını kaydet
     add_chat_message(user_uuid, "user", user_input)
 
-    # --- YENİ KISIM: Senin prompt fonksiyonlarını kullanıyoruz ---
-    deneme_ozet = get_deneme_ozeti(user_uuid)
-    not_ozeti = get_not_ozeti(user_uuid)
+    # 1. Analiz Yap
+    analysis = analyze_user_message(user_input)
     
-    system_prompt = create_system_prompt(deneme_ozet, not_ozeti)
+    # 2. Verileri Topla
+    perf_summary = get_comprehensive_performance_summary(user_uuid)
+    notes_summary = get_enhanced_notes_summary(user_uuid)
     
+    # 3. Akıllı Prompt Oluştur
+    system_prompt = get_enhanced_context_aware_prompt(user_uuid, analysis, perf_summary, notes_summary)
+
     messages = [{"role": "system", "content": system_prompt}]
     history = get_chat_history(user_uuid, limit=6)
     messages.extend(history)
@@ -1670,31 +1809,43 @@ def coach_chat_stream():
         collected = ""
         try:
             client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-
-            # Model ismini buraya dikkat et
             completion = client.chat.completions.create(
-                model="openai/gpt-oss-120b", 
+                model="openai/gpt-oss-120b", # Veya tercih ettiğin model
                 messages=messages,
                 temperature=0.7,
-                max_completion_tokens=1024, # Token sayısını artırdım
+                max_completion_tokens=2048,
                 top_p=0.95,
-                stream=True,
-                stop=None,
+                stream=True
             )
 
+            buffer = ""
             for chunk in completion:
                 delta = chunk.choices[0].delta.content or ""
                 if delta:
                     collected += delta
-                    # Web arayüzüne parça parça gönder
-                    yield f"data: {json.dumps({'delta': delta}, ensure_ascii=False)}\n\n"
+                    buffer += delta
+                    # Satır satır kontrol edip not komutlarını gizle
+                    if '\n' in buffer:
+                        filtered = filter_note_lines(buffer)
+                        if filtered.strip():
+                            yield f"data: {json.dumps({'delta': filtered}, ensure_ascii=False)}\n\n"
+                        buffer = ""
+            
+            # Kalan buffer
+            if buffer:
+                filtered = filter_note_lines(buffer)
+                if filtered.strip():
+                    yield f"data: {json.dumps({'delta': filtered}, ensure_ascii=False)}\n\n"
 
-            # Yanıt bittiğinde notları ayıkla ve kaydet
             if collected:
-                extract_and_save_notes(collected, user_uuid)
-                # Kullanıcıya not satırlarını göstermemek için temizleyip kaydediyoruz
-                clean_msg = filter_note_lines(collected) 
+                # Arka planda notları ve kalıpları çıkar
+                enhanced_smart_note_extraction(collected, user_uuid, user_input)
+                # Tam cevabı kaydet
+                clean_msg = filter_note_lines(collected)
                 add_chat_message(user_uuid, "assistant", clean_msg)
+                
+                # Geçmiş temizliği
+                clean_old_chat_history(user_uuid)
                 
                 yield f"data: {json.dumps({'done': True}, ensure_ascii=False)}\n\n"
 
@@ -1707,21 +1858,29 @@ def coach_chat_stream():
 @login_required
 @csrf.exempt
 def coach_chat_clear():
-    """
-    Chat geçmişini temizler
-
-    Returns:
-        json: Başarı durumu
-    """
     user_uuid = g.user['uuid']
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM koc_sohbet WHERE user_uuid = ?", (user_uuid,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM koc_sohbet WHERE user_uuid = ?", (user_uuid,))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'success': True})
+@app.route('/api/coach-memory-debug', methods=['GET'])
+@login_required
+def coach_memory_debug():
+    """Hafıza durumunu görmek için (Geliştirici)"""
+    user_uuid = g.user['uuid']
+    return jsonify({
+        "kalici": get_kalici_hafiza(user_uuid),
+        "notlar": get_koc_notes(user_uuid),
+        "gelismis": get_gelismis_notlar(user_uuid)
+    })
+    
+    
 @app.route('/')
 def index():
     if g.user:
